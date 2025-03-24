@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="uz" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.ultraq.net.nz/thymeleaf/layout ">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title layout:title-pattern="$CONTENT_TITLE | $LAYOUT_TITLE">[[#{app.title}]]</title>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <link th:if="${!isDevserver}" th:href="@{/css/bundle.css}" rel="stylesheet"/>
+    <script th:src="@{/js/bundle.js}" defer></script>
+
+    <meta name="description"
+          content="Rus tili orqali ideal karyera qurish va farzandingiz ta'limini oshirishni istaysizmi?">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style type="text/tailwindcss">
+        @layer base {
+            h1 {
+                @apply text-xl md:text-2xl font-bold;
+            }
+
+            h2 {
+                @apply text-lg md:text-xl font-bold;
+            }
+
+            h3 {
+                @apply text-base md:text-lg font-bold;
+            }
+        }
+        @layer components {
+            .btn-primary {
+                @apply bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition;
+            }
+
+            .btn-secondary {
+                @apply border border-gray-300 px-3 py-2 rounded hover:bg-gray-50 transition;
+            }
+
+            .mobile-menu {
+                @apply fixed inset-0 bg-gray-800 bg-opacity-90 z-50 transform transition-transform duration-300 ease-in-out;
+            }
+
+            .mobile-menu.hidden {
+                @apply -translate-x-full;
+            }
+        }
+    </style>
+    <style>
+
+        .language-selector {
+            position: relative;
+            display: inline-block;
+        }
+
+        .selected-lang {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 10px;
+            border: 2px solid #ccc;
+            border-radius: 8px;
+            cursor: pointer;
+            background-color: #fff;
+        }
+
+        .selected-lang:hover {
+            border-color: #999;
+        }
+
+        .dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+            display: none;
+            flex-direction: column;
+            width: 100%;
+        }
+
+        .lang-option {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 10px;
+            cursor: pointer;
+        }
+
+        .lang-option.active {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .lang-option:hover {
+            background-color: #e0e0e0;
+        }
+
+        .flag {
+            width: 20px;
+            height: 14px;
+            border-radius: 3px;
+        }
+
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+<div id="mobile-menu" class="fixed inset-0 bg-black/50 backdrop-blur-lg z-50 hidden flex flex-col">
+    <div class="flex justify-end p-4">
+        <button id="close-menu" class="text-white p-2">
+            <i data-lucide="x" class="w-6 h-6"></i>
+        </button>
+    </div>
+    <div class="flex flex-col items-center justify-center flex-grow">
+        <nav class="flex flex-col space-y-6 text-center text-white text-lg">
+            <a href="/courses" class="hover:text-green-300 py-2">KURSLAR</a>
+            <a href="#" class="hover:text-green-300 py-2">ONLINE TEST</a>
+            <a href="/courses/view/me" class="hover:text-green-300 py-2">MENING KURSLARIM</a>
+            <a href="#" class="hover:text-green-300 py-2">BLOG</a>
+            <a href="#" class="hover:text-green-300 py-2">YORDAM</a>
+            <a th:if="${#authorization.expression('!isAuthenticated()')}" onclick="toggleModal('loginModal')" class="bg-green-500 text-white px-8 py-3 rounded-lg hover:bg-green-600 transition mt-4">
+                KIRISH
+            </a>
+            <div class="flex items-center space-x-4">
+                <button id="search-toggle" class="flex items-center text-gray-400 hover:text-gray-600 space-x-2">
+                    <i data-lucide="search" class="w-5 h-5"></i>
+                    <span class="hover:text-green-500">IZLASH</span>
+                </button>
+            </div>
+
+        </nav>
+
+        <div id="search-box" class="absolute top-16 left-1/2 transform -translate-x-1/2 bg-white shadow-lg rounded-lg hidden">
+            <form class="flex items-center border rounded-lg overflow-hidden">
+                <input type="text" class="px-4 py-2 w-64 outline-none" placeholder="Izlash...">
+                <button class="bg-green-500 text-white px-4 py-2 hover:bg-green-600 transition">
+                    <i data-lucide="search"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+
+</div>
+<header class="bg-white shadow-sm sticky top-0 z-40">
+    <div class="container mx-auto px-4 py-3 flex items-center justify-between">
+        <div class="flex items-center">
+            <div class="flex items-center">
+                <div class="bg-green-500 text-white p-1 rounded mr-2">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2L2 7L12 12L22 7L12 2Z" fill="currentColor"/>
+                        <path d="M2 17L12 22L22 17" fill="currentColor"/>
+                        <path d="M2 12L12 17L22 12" fill="currentColor"/>
+                    </svg>
+                </div>
+                <a th:href="@{/}" class="font-bold text-xl">[[#{app.title}]]</a>
+            </div>
+            <nav class="hidden md:flex space-x-6 text-sm text-gray-600 ml-8">
+                <a href="/courses" class="hover:text-green-500">KURSLAR</a>
+                <a  th:if="${#authorization.expression('isAuthenticated()')&&role.equals('ROLE_USER')}" href="/courses/view/me" class="hover:text-green-300">MENING KURSLARIM</a>
+                <a href="#" class="hover:text-green-500">ONLINE TEST</a>
+                <a href="#" class="hover:text-green-500">BLOG</a>
+                <a href="#" class="hover:text-green-500">YORDAM</a>
+
+            </nav>
+        </div>
+        <div  class="flex items-center space-x-3">
+            <div th:if="${#authorization.expression('isAuthenticated()')}" class="relative" x-data="{ open: false }">
+                <button @click="open = !open" class="flex items-center space-x-2">
+                    <img src="/images/profile.png" alt="Profil rasmi"
+                         class="w-10 h-10 rounded-full border-2 border-gray-300 hover:border-blue-500 transition">
+                </button>
+
+                <div x-show="open" @click.away="open = false"
+                     class="absolute right-0 mt-2 w-48 bg-white border rounded-lg shadow-lg overflow-hidden z-50">
+                    <a href="/profile" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Profil</a>
+                    <a href="/settings" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Sozlamalar</a>
+                    <form action="/logout" method="POST">
+                        <button type="submit" class="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100">
+                            Chiqish
+                        </button>
+                    </form>
+                </div>
+            </div>
+            <button th:if="${#authorization.expression('!isAuthenticated()')}" onclick="toggleModal('loginModal')"
+                    class="md:flex hidden bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition">
+                KIRISH
+            </button>
+            <button id="open-menu" class="md:hidden p-2 -mr-2">
+                <i data-lucide="menu" class="w-6 h-6"></i>
+            </button>
+        </div>
+
+    </div>
+</header>
+<main class="flex-grow">
+    <div layout:fragment="content"></div>
+    <!-- Login Modal -->
+    <div id="loginModal" class="hidden fixed inset-0 flex justify-center items-center bg-opacity-50 backdrop-blur-sm z-50">
+        <div class="bg-white p-6 rounded-lg shadow-lg w-96 relative">
+            <button onclick="toggleModal('loginModal')" class="absolute top-4 right-4 text-gray-700 hover:bg-gray-300 hover:text-white transition-all duration-300 p-2 rounded-full text-lg">
+                &times;
+            </button>
+
+            <h2 class="text-xl font-bold text-gray-700 mb-4">Tizimga kirish</h2>
+            <form id="loginForm" action="/process_login" method="post">
+                <div class="mb-3">
+                    <label for="email" class="block text-gray-600 text-sm">Email</label>
+                    <input type="text" id="email" name="email" class="w-full px-3 py-2 border rounded" required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="password" class="block text-gray-600 text-sm">Parol</label>
+                    <input type="password" id="password" name="password" class="w-full px-3 py-2 border rounded"
+                           required>
+                </div>
+                <div   th:if="${param.error}" id="errorMessage" class="hidden bg-red-500 text-white p-2 rounded mb-4 text-sm">Email yoki parol noto‘g‘ri!</div>
+
+                <button type="submit" class="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600 transition">
+                    Kirish
+                </button>
+            </form>
+
+                <!-- Register Link -->
+                <div class="text-center mt-4">
+                    <p class="text-gray-600 text-sm">
+                        Akkountingiz yo'qmi? <a href="#" onclick="showRegisterModal()" class="text-blue-500 hover:underline">Ro'yxatdan o'tish</a>
+                    </p>
+                </div>
+        </div>
+    </div>
+
+    <div id="registerModal" class="hidden fixed inset-0 flex justify-center items-center bg-opacity-50 backdrop-blur-sm z-50">
+        <div class="bg-white p-6 rounded-lg shadow-lg w-96 relative">
+            <button onclick="toggleModal('registerModal')" class="absolute top-4 right-4 text-gray-700 hover:bg-gray-300 hover:text-white transition-all duration-300 p-2 rounded-full text-lg">
+                &times;
+            </button>
+
+            <h2 class="text-xl font-bold text-gray-700 mb-4">Ro'yxatdan o'tish</h2>
+            <!-- Registration Form -->
+            <form id="registerForm" method="post" th:action="@{/auth/register}" th:object="${register}">
+
+                <div class="mb-3">
+                    <label for="firstName" class="block text-gray-600 text-sm">Ism</label>
+                    <input th:field="*{firstName}" type="text" id="firstName" name="firstName" class="w-full px-3 py-2 border rounded" placeholder="Ism" required>
+                </div>
+                <div class="mb-3">
+                    <label for="lastName" class="block text-gray-600 text-sm">Familiya</label>
+                    <input th:field="*{lastName}" type="text" id="lastName" name="lastName" class="w-full px-3 py-2 border rounded" placeholder="Familiya" required>
+                </div>
+                <div class="mb-3">
+                    <label for="birthDate" class="block text-gray-600 text-sm">Tug'ulgan sana</label>
+                    <input th:field="*{birthDate}" type="date" id="birthDate" name="birthDate" class="w-full px-3 py-2 border rounded" required>
+                </div>
+                <div class="mb-3">
+                    <label for="position" class="block text-gray-600 text-sm">Siz kimsiz?</label>
+                    <select th:field="*{position}" id="position" name="position" class="w-full px-3 py-2 border rounded" required>
+                        <option value="">Tanlang</option>
+                        <option th:each="pos : ${positions}" th:text="${pos.displayName}" th:value="${pos}"></option>
+                    </select>
+                </div>
+                <!-- Email -->
+                <div class="mb-3">
+                    <label for="mail" class="block text-gray-600 text-sm">Email</label>
+                    <input th:field="*{email}" type="email" id="mail" name="mail" class="w-full px-3 py-2 border rounded" placeholder="email@example.com" required>
+                </div>
+
+                <!-- Phone Number -->
+                <div class="mb-3">
+                    <label for="phone" class="block text-gray-600 text-sm">Telefon raqami</label>
+                    <input th:field="*{phone}" type="tel" id="phone" name="phone" class="w-full px-3 py-2 border rounded" placeholder="+998 XX XXX XX XX" required>
+                </div>
+
+                <!-- Password -->
+                <div class="relative">
+                    <input type="password" th:field="*{password}" id="passw" name="passw" class="w-full px-3 py-2 border rounded" placeholder="Parolingizni kiriting" required>
+                    <button type="button" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700" onclick="togglePassword('passw')">
+                        <i data-lucide="eye" class="w-5 h-5 password-show"></i>
+                        <i data-lucide="eye-off" class="w-5 h-5 password-hide hidden"></i>
+                    </button>
+                </div>
+
+                <div class="relative">
+                    <input type="password" id="confirmPassword" name="confirmPassword" class="w-full px-3 py-2 border rounded" placeholder="Parolni qayta kiriting" required>
+                    <button type="button" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700" onclick="togglePassword('confirmPassword')">
+                        <i data-lucide="eye" class="w-5 h-5 password-show"></i>
+                        <i data-lucide="eye-off" class="w-5 h-5 password-hide hidden"></i>
+                    </button>
+                </div>
+
+
+                <!-- Error Message -->
+                <div id="errorMessage" class="hidden bg-red-500 text-white p-2 rounded mb-4 text-sm">
+                    Ro'yxatdan o'tishda xatolik yuz berdi!
+                </div>
+
+                <!-- Terms and Conditions -->
+                <div class="mb-4 flex items-start">
+                    <input id="terms" name="terms" type="checkbox" class="mt-1 h-4 w-4 text-blue-500 border-gray-300 rounded focus:ring-blue-500">
+                    <label for="terms" class="ml-2 block text-sm text-gray-600">
+                        Men <a href="#" class="text-blue-500 hover:underline">foydalanish shartlari</a> va <a href="#" class="text-blue-500 hover:underline">maxfiylik siyosati</a> bilan tanishdim va roziman
+                    </label>
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" class="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600 transition">
+                    Ro'yxatdan o'tish
+                </button>
+
+                <!-- Login Link -->
+                <div class="text-center mt-4">
+                    <p class="text-gray-600 text-sm">
+                        Akkountingiz bormi? <a href="#" onclick="showLoginModal()" class="text-blue-500 hover:underline">Kirish</a>
+                    </p>
+                </div>
+            </form>
+        </div>
+    </div>
+    <!-- Success Modal -->
+    <div id="successModal" class="hidden fixed inset-0 flex justify-center items-center bg-opacity-50 backdrop-blur-sm z-50">
+        <div class="bg-white p-6 rounded-lg shadow-lg w-96 relative text-center">
+            <button onclick="toggleModal('successModal')" class="absolute top-4 right-4 text-gray-700 hover:bg-gray-300 hover:text-white transition-all duration-300 p-2 rounded-full text-lg">
+                &times;
+            </button>
+
+            <div class="mb-4">
+                <div class="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+                    <i data-lucide="check" class="w-8 h-8 text-green-500"></i>
+                </div>
+            </div>
+
+            <h2 class="text-xl font-bold text-gray-700 mb-2">Ro'yxatdan o'tish muvaffaqiyatli yakunlandi!</h2>
+            <p class="text-gray-600 mb-6">Sizning email manzilingizga tasdiqlash xabari yuborildi.</p>
+
+            <button onclick="toggleModal('successModal')" class="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600 transition">
+                Tushundim
+            </button>
+        </div>
+    </div>
+    <div id="errorModal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-50 flex justify-center items-center">
+        <div class="bg-white p-6 rounded shadow-lg w-1/3">
+            <h2 class="text-xl font-semibold mb-4 text-red-500">Xatolik yuz berdi</h2>
+            <p id="errorMessag"></p>
+            <button onclick="closeErrorModal()" class="mt-4 px-4 py-2 bg-red-500 text-white rounded">Yopish</button>
+        </div>
+    </div>
+</main>
+
+<footer class="bg-gray-600 text-white py-8">
+    <div class="container mx-auto px-4">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+            <div>
+                <h3 class="font-bold mb-4">Foydali havolalar</h3>
+                <ul class="space-y-2 text-sm">
+                    <li><a href="#" class="hover:text-green-300">Biz haqimizda</a></li>
+                    <li><a href="#" class="hover:text-green-300">FAQ</a></li>
+                    <li><a href="#" class="hover:text-green-300">Yangiliklarimizga obuna bo'ling</a></li>
+                    <li><a href="#" class="hover:text-green-300">Hamkorlik uchun</a></li>
+                    <li><a href="#" class="hover:text-green-300">Maxfiylik siyosati</a></li>
+                </ul>
+            </div>
+
+            <div>
+                <h3 class="font-bold mb-4">To'lov turlari</h3>
+                <div class="flex space-x-2">
+                    <div class="bg-white p-1 rounded">
+                        <svg width="40" height="24" viewBox="0 0 40 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect width="40" height="24" rx="4" fill="#F3F4F6"/>
+                            <path d="M8 12H32" stroke="#374151" stroke-width="2"/>
+                        </svg>
+                    </div>
+                    <div class="bg-white p-1 rounded">
+                        <svg width="40" height="24" viewBox="0 0 40 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect width="40" height="24" rx="4" fill="#F3F4F6"/>
+                            <path d="M8 12H32" stroke="#374151" stroke-width="2"/>
+                        </svg>
+                    </div>
+                    <div class="bg-white p-1 rounded">
+                        <svg width="40" height="24" viewBox="0 0 40 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect width="40" height="24" rx="4" fill="#F3F4F6"/>
+                            <path d="M8 12H32" stroke="#374151" stroke-width="2"/>
+                        </svg>
+                    </div>
+                </div>
+
+                <h3 class="font-bold mt-6 mb-4">Ijtimoiy tarmoqlarimiz bilan bog'laning:</h3>
+                <div class="flex space-x-4">
+                    <a href="#" class="hover:text-green-300">
+                        <i data-lucide="facebook" class="w-6 h-6"></i>
+                    </a>
+                    <a href="#" class="hover:text-green-300">
+                        <i data-lucide="instagram" class="w-6 h-6"></i>
+                    </a>
+                    <a href="#" class="hover:text-green-300">
+                        <i data-lucide="mail" class="w-6 h-6"></i>
+                    </a>
+                    <a href="#" class="hover:text-green-300">
+                        <i data-lucide="linkedin" class="w-6 h-6"></i>
+                    </a>
+                </div>
+            </div>
+
+            <div class="md:col-span-2">
+                <div class="flex items-center mb-4">
+                    <div class="bg-white text-green-500 p-1 rounded mr-2">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 2L2 7L12 12L22 7L12 2Z" fill="currentColor"/>
+                            <path d="M2 17L12 22L22 17" fill="currentColor"/>
+                            <path d="M2 12L12 17L22 12" fill="currentColor"/>
+                        </svg>
+                    </div>
+                    <a th:href="@{/}" class="font-bold text-xl">[[#{app.title}]]</a>
+                </div>
+                <p class="text-sm mb-4">
+                    Sizni, har bir o'quvchimizni bilim olishingizda ko'maklashishdan mamnunmiz.
+                </p>
+                <p class="text-sm">
+                    Manzil: Urganch, Al-Xorazmiy shoh ko‘chasi, 110-uy
+                    <br/>
+                    Tel: +998 99 159-49-46
+                    <br/>
+                    email: asadrajab28@gmail.com
+                </p>
+                <p class="text-sm mt-4">
+                    Barcha huquqlar himoyalangan.
+                </p>
+            </div>
+        </div>
+
+        <div class="border-t border-gray-500 pt-4 flex flex-col md:flex-row justify-between items-center">
+            <p class="text-xs mb-2 md:mb-0">© 2025 [[#{app.title}]] Barcha huquqlar himoyalangan.</p>
+            <div>
+                <img src="/images/logo.png" alt="Developer logo" class="h-5"/>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<script>
+    lucide.createIcons();
+</script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const mobileMenu = document.getElementById('mobile-menu');
+        const openMenuBtn = document.getElementById('open-menu');
+        const closeMenuBtn = document.getElementById('close-menu');
+
+        openMenuBtn.addEventListener('click', function () {
+            mobileMenu.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        });
+
+        closeMenuBtn.addEventListener('click', function () {
+            mobileMenu.classList.add('hidden');
+            document.body.style.overflow = '';
+        });
+    });
+</script>
+
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const categorySlider = document.getElementById('category-slider');
+        if (categorySlider) {
+            let isDown = false;
+            let startX;
+            let scrollLeft;
+
+            categorySlider.addEventListener('mousedown', (e) => {
+                isDown = true;
+                startX = e.pageX - categorySlider.offsetLeft;
+                scrollLeft = categorySlider.scrollLeft;
+            });
+
+            categorySlider.addEventListener('mouseleave', () => {
+                isDown = false;
+            });
+
+            categorySlider.addEventListener('mouseup', () => {
+                isDown = false;
+            });
+
+            categorySlider.addEventListener('mousemove', (e) => {
+                if (!isDown) return;
+                e.preventDefault();
+                const x = e.pageX - categorySlider.offsetLeft;
+                const walk = (x - startX) * 2;
+                categorySlider.scrollLeft = scrollLeft - walk;
+            });
+        }
+
+        const courseSlider = document.getElementById('course-slider');
+        if (courseSlider) {
+            let isDown = false;
+            let startX;
+            let scrollLeft;
+
+            courseSlider.addEventListener('mousedown', (e) => {
+                isDown = true;
+                startX = e.pageX - courseSlider.offsetLeft;
+                scrollLeft = courseSlider.scrollLeft;
+            });
+
+            courseSlider.addEventListener('mouseleave', () => {
+                isDown = false;
+            });
+
+            courseSlider.addEventListener('mouseup', () => {
+                isDown = false;
+            });
+
+            courseSlider.addEventListener('mousemove', (e) => {
+                if (!isDown) return;
+                e.preventDefault();
+                const x = e.pageX - courseSlider.offsetLeft;
+                const walk = (x - startX) * 2;
+                courseSlider.scrollLeft = scrollLeft - walk;
+            });
+        }
+
+        const testimonialSlider = document.getElementById('testimonial-slider');
+        if (testimonialSlider) {
+            let isDown = false;
+            let startX;
+            let scrollLeft;
+
+            testimonialSlider.addEventListener('mousedown', (e) => {
+                isDown = true;
+                startX = e.pageX - testimonialSlider.offsetLeft;
+                scrollLeft = testimonialSlider.scrollLeft;
+            });
+
+            testimonialSlider.addEventListener('mouseleave', () => {
+                isDown = false;
+            });
+
+            testimonialSlider.addEventListener('mouseup', () => {
+                isDown = false;
+            });
+
+            testimonialSlider.addEventListener('mousemove', (e) => {
+                if (!isDown) return;
+                e.preventDefault();
+                const x = e.pageX - testimonialSlider.offsetLeft;
+                const walk = (x - startX) * 2;
+                testimonialSlider.scrollLeft = scrollLeft - walk;
+            });
+        }
+        const searchToggle = document.getElementById("search-toggle");
+        const searchBox = document.getElementById("search-box");
+
+        searchToggle.addEventListener("click", function () {
+            if (searchBox.classList.contains("hidden")) {
+                searchBox.classList.remove("hidden");
+            } else {
+                searchBox.classList.add("hidden");
+            }
+        });
+
+        document.addEventListener("click", function (event) {
+            if (!searchBox.contains(event.target) && !searchToggle.contains(event.target)) {
+                searchBox.classList.add("hidden");
+            }
+        });
+    });
+    lucide.createIcons();
+
+    function toggleModal(modalId) {
+        if (!modalId) {
+            return;
+        }
+
+        const modal = document.getElementById(modalId);
+        if (!modal) {
+            return;
+        }
+
+        modal.classList.toggle('hidden');
+        document.body.style.overflow = modal.classList.contains('hidden') ? '' : 'hidden';
+    }
+
+
+    function showLoginModal() {
+        toggleModal('registerModal');
+        setTimeout(() => {
+            toggleModal('loginModal');
+        }, 300);
+    }
+
+    function showRegisterModal() {
+        toggleModal('loginModal');
+        setTimeout(() => {
+            toggleModal('registerModal');
+        }, 300);
+    }
+
+    function togglePassword(inputId) {
+        const input = document.getElementById(inputId);
+        const button = input.nextElementSibling;
+        const showIcon = button.querySelector('.password-show');
+        const hideIcon = button.querySelector('.password-hide');
+
+        if (input.type === 'password') {
+            input.type = 'text';
+            showIcon.classList.add('hidden');
+            hideIcon.classList.remove('hidden');
+        } else {
+            input.type = 'password';
+            showIcon.classList.remove('hidden');
+            hideIcon.classList.add('hidden');
+        }
+    }
+
+
+
+    function toggleDropdown() {
+        document.querySelector('.dropdown').style.display =
+            document.querySelector('.dropdown').style.display === 'block' ? 'none' : 'block';
+    }
+
+    function changeLanguage(lang) {
+        let selectedLang = document.querySelector('.selected-lang');
+        let options = document.querySelectorAll('.lang-option');
+
+        options.forEach(option => {
+            option.classList.remove('active');
+        });
+
+        if (lang === 'uz') {
+            selectedLang.innerHTML = '<img src="/images/uzbflag.png" alt="O\'zbek" class="flag"><span>O\'Z</span>';
+            options[0].classList.add('active');
+        } else {
+            selectedLang.innerHTML = '<img src="/images/rusflag.png" alt="Rus" class="flag"><span>РУ</span>';
+            options[1].classList.add('active');
+        }
+
+        document.querySelector('.dropdown').style.display = 'none';
+    }
+    document.addEventListener("DOMContentLoaded", function() {
+        const registerForm = document.getElementById('registerForm');
+
+        registerForm.addEventListener('submit', function(e) {
+            const firstName = document.getElementById('firstName').value.trim();
+            const lastName = document.getElementById('lastName').value.trim();
+            const email = document.getElementById('mail').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+            const password = document.getElementById('passw').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const terms = document.getElementById('terms').checked;
+            const errorMessage = document.getElementById('errorMessage');
+
+            let isValid = true;
+            errorMessage.textContent = '';
+            errorMessage.classList.add('hidden');
+
+            // To'liq ismni tekshirish
+            if (firstName === '') {
+                isValid = false;
+                errorMessage.textContent = 'Iltimos, to‘liq ismingizni kiriting!';
+            }
+            if (lastName === '') {
+                isValid = false;
+                errorMessage.textContent = 'Iltimos, to‘liq ismingizni kiriting!';
+            }
+
+            // Emailni tekshirish
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                isValid = false;
+                errorMessage.textContent = 'Yaroqli email kiriting!';
+            }
+
+            // Telefon raqamini tekshirish (faqat raqam va + bilan boshlanishi kerak)
+            const phoneRegex = /^\+?\d{9,15}$/;
+            if (!phoneRegex.test(phone)) {
+                isValid = false;
+                errorMessage.textContent = 'Yaroqli telefon raqamini kiriting!';
+            }
+
+            // Parolni tekshirish
+            if (password.length < 8) {
+                isValid = false;
+                errorMessage.textContent = 'Parol kamida 8 ta belgidan iborat bo‘lishi kerak!';
+            }
+
+            // Parollar mosligini tekshirish
+            if (password !== confirmPassword) {
+                isValid = false;
+                errorMessage.textContent = 'Parollar mos kelmadi!';
+            }
+
+            // Foydalanish shartlarini tekshirish
+            if (!terms) {
+                isValid = false;
+                errorMessage.textContent = 'Iltimos, foydalanish shartlariga rozilik bildiring!';
+            }
+
+            // Agar validatsiya xato bo'lsa, xabarni ko'rsatamiz
+            if (!isValid) {
+                errorMessage.classList.remove('hidden');
+                return;
+            }
+
+            // Tugma deaktivatsiya va yuklanish animatsiyasi
+            const submitButton = registerForm.querySelector('button[type="submit"]');
+            const originalText = submitButton.innerHTML;
+            submitButton.disabled = true;
+            submitButton.innerHTML = `
+            <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg> Yuklanmoqda...
+        `;
+
+            setTimeout(() => {
+                toggleModal('registerModal');
+                toggleModal('successModal');
+                registerForm.reset();
+                submitButton.disabled = false;
+                submitButton.innerHTML = originalText;
+            }, 1500);
+        });
+    });
+    document.addEventListener('DOMContentLoaded', function() {
+
+
+        const loginForm = document.getElementById('loginForm');
+
+        window.addEventListener('click', function(e) {
+            const registerModal = document.getElementById('registerModal');
+            const loginModal = document.getElementById('loginModal');
+            const successModal = document.getElementById('successModal');
+
+            if (e.target === registerModal) {
+                toggleModal('registerModal');
+            }
+
+            if (e.target === loginModal) {
+                toggleModal('loginModal');
+            }
+
+            if (e.target === successModal) {
+                toggleModal('successModal');
+            }
+        });
+    });
+    function showErrorModal(message) {
+        document.getElementById("errorMessag").innerText = message;
+        document.getElementById("errorModal").classList.remove("hidden");
+    }
+
+    function closeErrorModal() {
+        document.getElementById("errorModal").classList.add("hidden");
+    }
+
+    var errorMessag = "[[${errorMessage}]]";
+    if (errorMessag && errorMessag.trim() !== "") {
+        showErrorModal(errorMessag);
+    }
+</script>
+<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.10.3/dist/cdn.min.js" defer></script>
+</body>
+</html>

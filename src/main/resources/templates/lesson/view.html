@@ -1,0 +1,265 @@
+<!DOCTYPE HTML>
+<html layout:decorate="~{layout}" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>[[${lesson.name}]]</title>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#4CAF50',
+            secondary: '#3b82f6',
+            dark: '#333',
+            light: '#f8f9fa'
+          }
+        }
+      }
+    }
+  </script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style type="text/tailwind">
+    @layer components {
+      .nav-link {
+        @apply px-4 py-2 text-gray-600 hover:text-primary transition-colors;
+      }
+      .lesson-item {
+        @apply flex items-center justify-between p-3 border-b hover:bg-gray-50 cursor-pointer transition-colors;
+      }
+      .btn-primary {
+        @apply bg-primary text-white py-2 px-4 rounded hover:bg-green-600 transition-colors;
+      }
+      .btn-secondary {
+        @apply bg-secondary text-white py-2 px-4 rounded hover:bg-blue-700 transition-colors;
+      }
+      .rating-stars {
+        @apply flex text-yellow-400;
+      }
+    }
+  </style>
+</head>
+<body>
+<div layout:fragment="content">
+  <main class="container mx-auto px-4 py-6">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div class="lg:col-span-2 bg-white rounded-lg border border-gray-200 p-6">
+        <h1 class="text-prep-green text-2xl font-medium mb-4" th:text="${lesson.name}"></h1>
+
+        <div class="mb-4 text-sm">
+          <div class="bg-white p-6 rounded-xl shadow-md leading-relaxed">
+            <h2 class="text-xl font-bold text-gray-800 mb-4">Dars mazmuni</h2>
+            <p th:utext="${lesson.description}" class="text-gray-700 text-base"></p>
+          </div>
+        </div>
+
+        <!-- Rating Section -->
+        <div class="flex items-center justify-between border-t border-gray-200 pt-4">
+          <div class="flex items-center">
+            <div class="rating-stars flex mr-2">
+              <i class="fas fa-star filled"></i>
+              <i class="fas fa-star filled"></i>
+              <i class="fas fa-star filled"></i>
+              <i class="fas fa-star filled"></i>
+              <i class="fas fa-star filled"></i>
+            </div>
+            <span class="text-sm text-gray-600">([[${lesson.averageRating}]]) O'rtacha bahosi</span>
+          </div>
+        </div>
+        <div class="mt-8">
+          <h2 class="text-lg font-medium mb-4">Video dars</h2>
+
+          <div class="space-y-2">
+            <iframe th:if="${lesson.videoLink}"
+                    th:src="@{${#strings.replace(lesson.videoLink, 'youtu.be/', 'www.youtube.com/embed/')}}"
+                    width="560" height="315"
+                    frameborder="0"
+                    allowfullscreen
+                    class="w-full rounded-lg shadow-md">
+            </iframe>
+
+            <p th:if="${lesson.videoLink == null}" class="text-gray-500">Bu dars uchun video mavjud emas.</p>
+          </div>
+        </div>
+
+
+
+        <div class="mt-10 border-t border-gray-200 pt-6">
+          <div class="flex justify-between mb-6">
+            <h2 class="text-lg font-medium">Baholar statistikasi</h2>
+            <h2 class="text-lg font-medium">O'quvchilarning fikrlari</h2>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="bg-white p-4 rounded-lg border border-gray-200">
+              <div class="flex items-center justify-center mb-4">
+                <div class="text-center">
+                  <div class="text-5xl font-bold text-prep-green" th:text="${lesson.averageRating}"></div>
+
+                  <div class="rating-stars flex justify-center mt-2">
+                    <th:block th:with="avgRating=${lesson.averageRating}">
+                      <i class="fas fa-star"
+                         th:each="i : ${#numbers.sequence(1, 5)}"
+                         th:classappend="${i <= avgRating} ? 'text-yellow-500' : 'text-gray-300'">
+                      </i>
+                    </th:block>
+                  </div>
+
+                  <div class="text-xs text-gray-500 mt-1">
+                    <span th:text="${lesson.averageRating}"></span> O‘rtacha bahosi
+                  </div>
+                </div>
+              </div>
+              <div th:replace="~{fragments/commentForm :: commentForm('/lessons/comment/add/' + ${lessonId})}"></div>
+            </div>
+
+            <div class="space-y-4">
+              <div class="bg-white p-4 rounded-lg border border-gray-200 max-h-80 overflow-y-auto">
+                <p th:if="${lesson.comments.isEmpty()}" class="text-xs text-gray-500">Hech qanday fikrlar topilmadi</p>
+
+                <div th:each="comment : ${lesson.comments}" class="mb-6 p-4 bg-white shadow-md rounded-lg">
+                  <div class="flex justify-between items-center mb-2">
+                    <span class="font-semibold text-lg text-gray-800" th:text="${comment.userFullName}"></span>
+                    <div class="rating-stars flex space-x-1">
+                      <i class="fas fa-star text-yellow-500" th:each="i : ${#numbers.sequence(1, comment.rating)}"></i>
+                    </div>
+                  </div>
+
+                  <p class="text-sm text-gray-700 italic mb-2" th:text="${comment.word}"></p>
+                  <p class="text-xs text-gray-500">
+                    <i class="far fa-clock"></i>
+                    <span th:text="${#temporals.format(comment.uploadDate, 'dd MMM yyyy HH:mm')}"></span>
+                  </p>
+                </div>
+
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column - Course Card -->
+      <div class="lg:col-span-1">
+        <div class="sticky top-20">
+          <div class="bg-gray-200 rounded-lg border border-gray-200 overflow-hidden">
+            <!-- Course Image -->
+            <div class="bg-prep-blue p-6 flex flex-col items-center justify-center text-white">
+              <h2 class="text-2xl text-black font-bold mb-4" th:text="${lesson.name}"></h2>
+
+              <div class="flex items-center justify-center space-x-4">
+                <div class="bg-black rounded-full p-2">
+                  <i class="fas fa-book text-prep-blue"></i>
+                </div>
+                <div class="bg-black rounded-full p-2">
+                  <i class="fas fa-headphones text-prep-blue"></i>
+                </div>
+                <div class="bg-black rounded-full p-2">
+                  <i class="fas fa-pen text-prep-blue"></i>
+                </div>
+              </div>
+
+              <div class="mt-4 text-black text-center">
+                <h3 class="text-lg font-semibold mb-2">Qo'shimcha Fayllar</h3>
+                  <p class="text-gray-500" th:if="${lesson.lessonFiles.isEmpty()}">Bu dars uchun qo'shimcha fayllar mavjud emas</p>
+                  <div th:each="fileLink : ${lesson.lessonFiles}">
+                    <a th:href="${fileLink}" class="text-blue-600 hover:underline" target="_blank">
+                      <i class="fas fa-download"></i> Yuklab olish
+                    </a>
+                  </div>
+                <div th:if="${#authorization.expression('hasRole(''ROLE_USER'')')}">
+                    <form method="post" th:if="${lesson.progressStatus == T(uz.asadbek.course.model.ProgressStatus).IN_PROGRESS}"
+                          th:action="@{/lessons/end-lesson/{id}(id=${lesson.id})}">
+                      <button type="submit" class="w-full bg-green-500 text-white font-semibold py-3 rounded-lg mt-6 shadow-md hover:bg-green-600 transition transform hover:scale-105">
+                        Yakunlash va test sinovlarini boshlash
+                      </button>
+                    </form>
+
+                    <button th:if="${lesson.progressStatus == T(uz.asadbek.course.model.ProgressStatus).NOT_STARTED}"
+                            type="submit" class="w-full bg-gray-600 text-white font-semibold py-3 px-2 rounded-lg mt-6 ">
+                      Dars hali boshlanmagan
+                    </button>
+                    <button th:if="${lesson.progressStatus == T(uz.asadbek.course.model.ProgressStatus).COMPLETED}"
+                            type="submit" class="w-full bg-yellow-600 text-white font-semibold py-3 px-2 rounded-lg mt-6 ">
+                      Dars tugatildi
+                    </button>
+                </div>
+                <div th:if="${#authorization.expression('hasRole(''ROLE_ADMIN'')')}">
+                  <div class="flex items-center gap-3 mt-4">
+                    <a th:href="@{/lessons/edit/{id}(id=${lesson.id})}" class="w-full bg-yellow-500 px-2 text-white font-semibold py-2 text-sm rounded-lg shadow-md text-center whitespace-nowrap">
+                      ✏️ Tahrirlash
+                    </a>
+                    <a th:href="@{/lessons/add-test/{id}(id=${lesson.id})}" class="w-full bg-green-500 px-2 text-white font-semibold py-2 text-sm rounded-lg shadow-md text-center whitespace-nowrap">
+                      ➕ Test qo‘shish
+                    </a>
+                  </div>
+
+
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const progressTracker = {
+        totalLessons: 15,
+        completedLessons: 3,
+        updateProgress: function() {
+          const progressPercentage = (this.completedLessons / this.totalLessons) * 100;
+          console.log(`Course progress: ${progressPercentage.toFixed(1)}%`);
+        }
+      };
+
+      progressTracker.updateProgress();
+
+      const lessonItems = document.querySelectorAll('.lesson-item');
+      lessonItems.forEach(item => {
+        item.addEventListener('click', function() {
+          console.log('Opening lesson:', this.querySelector('span.font-medium').textContent);
+        });
+      });
+
+      const ratingSystem = {
+        submitRating: function(stars) {
+          console.log(`User submitted a ${stars}-star rating`);
+        }
+      };
+
+      ratingSystem.submitRating(5);
+    });
+
+    function setRating(rating) {
+      document.getElementById("rating-value").value = rating;
+      let stars = document.querySelectorAll(".rat");
+
+      stars.forEach((star, index) => {
+        if (index < rating) {
+          star.classList.add("text-yellow-500");
+          star.classList.remove("text-gray-400");
+        } else {
+          star.classList.add("text-gray-400");
+          star.classList.remove("text-yellow-500");
+        }
+      });
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+      document.querySelectorAll(".rat").forEach((star, index) => {
+        star.addEventListener("click", function () {
+          setRating(index + 1);
+        });
+      });
+    });
+
+    window.setRating = setRating;
+
+  </script>
+</div>
+
+</body>
+</html>

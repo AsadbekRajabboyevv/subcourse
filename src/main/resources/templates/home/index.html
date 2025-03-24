@@ -1,0 +1,497 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+        layout:decorate="~{layout}">
+    <head>
+        <title>[[#{home.index.headline}]]</title>
+        <link rel="icon" type="image/x-icon" href="/favicon.ico">
+        <style>
+            .background-blur {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.4);
+                backdrop-filter: blur(6px);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 1000;
+            }
+            .hide {
+                display: none;
+            }
+            /* Popup oynasi */
+            .popup-box {
+                background: white;
+                padding: 25px;
+                border-radius: 12px;
+                box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+                text-align: center;
+                width: 320px;
+            }
+            .popup-close-btn {
+                margin-top: 12px;
+                background: #ff5757;
+                color: white;
+                border: none;
+                padding: 10px 15px;
+                border-radius: 6px;
+                cursor: pointer;
+                font-size: 14px;
+            }
+        </style>
+    </head>
+    <body>
+        <div layout:fragment="content">
+            <div class="flex justify-center hidden p-4 bg-gray-100">
+                <div id="hero-slider" class="relative w-full mx-auto max-w-4xl bg-white shadow-md rounded-xl overflow-hidden transition-colors duration-500 ease-in-out">
+
+                    <!-- Slayder kontenti -->
+                    <div class="p-6 text-center">
+                        <h1 id="slider-title" class="text-lg md:text-3xl font-bold text-gray-800 mb-4 opacity-0 transition-opacity duration-500 ease-in-out">
+                            Rus tili orqali ideal karyera qurish va farzandingiz ta'limini oshirishni istaysizmi?
+                        </h1>
+                        <button id="slider-button" class="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 transition opacity-0">
+                            TO'LIQ
+                        </button>
+                    </div>
+
+                    <!-- Slayder tugmalari -->
+                    <button id="prev-slide" class="absolute left-2 top-1/2 -translate-y-1/2 bg-gray-300 p-1 rounded-full shadow-md hover:bg-gray-400">
+                        <i data-lucide="chevron-left" class="w-4 h-4"></i>
+                    </button>
+                    <button id="next-slide" class="absolute right-2 top-1/2 -translate-y-1/2 bg-gray-300 p-1 rounded-full shadow-md hover:bg-gray-400">
+                        <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                    </button>
+
+                    <!-- Indikatorlar -->
+                    <div class="flex justify-center py-3">
+                        <div class="flex space-x-1">
+                            <span class="indicator w-2 h-2 rounded-full bg-gray-400 opacity-50"></span>
+                            <span class="indicator w-2 h-2 rounded-full bg-gray-400"></span>
+                            <span class="indicator w-2 h-2 rounded-full bg-gray-400 opacity-50"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="backgroundBlur" class="background-blur hide">
+                <div id="popupAlert" class="popup-box hide">
+                    <p id="popupMessage"></p>
+                    <div id="popupButtons">
+                        <button class="popup-close-btn" onclick="closePopup()">Yopish</button>
+                    </div>
+                </div>
+            </div>
+            <!-- Stats -->
+            <div class="bg-gray-100 py-4  p-4">
+                <div class="container mx-auto px-4">
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div class="bg-green-500 text-white rounded-lg p-5 flex items-center shadow-lg">
+                            <div class="mr-3">
+                                <i data-lucide="users" class="w-6 h-6 md:w-8 md:h-8"></i>
+                            </div>
+                            <div>
+                                <div class="font-bold text-base md:text-lg" th:text="${homePage.countStudents}"></div>
+                                <div class="text-sm md:text-base">O'quvchilar</div>
+                            </div>
+                        </div>
+
+                        <div class="bg-green-500 text-white rounded-lg p-5 flex items-center shadow-lg">
+                            <div class="mr-3">
+                                <i data-lucide="book-open" class="w-6 h-6 md:w-8 md:h-8"></i>
+                            </div>
+                            <div>
+                                <div class="font-bold text-base md:text-lg" th:text="${homePage.countLessons}"></div>
+                                <div class="text-sm md:text-base">Videodarslar</div>
+                            </div>
+                        </div>
+
+                        <div class="bg-green-500 text-white rounded-lg p-5 flex items-center shadow-lg">
+                            <div class="mr-3">
+                                <i data-lucide="bar-chart-2" class="w-6 h-6 md:w-8 md:h-8"></i>
+                            </div>
+                            <div>
+                                <div class="font-bold text-base md:text-lg" th:text="${homePage.countTests}"></div>
+                                <div class="text-sm md:text-base">Sinov testlari</div>
+                            </div>
+                        </div>
+
+                        <div class="bg-green-500 text-white rounded-lg p-5 flex items-center shadow-lg">
+                            <div class="mr-3">
+                                <i data-lucide="layers" class="w-6 h-6 md:w-8 md:h-8"></i>
+                            </div>
+                            <div>
+                                <div class="font-bold text-base md:text-lg" th:text="${homePage.countCourses}"></div>
+                                <div class="text-sm md:text-base">Kurslar</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="container mx-auto p-6 md:py-8">
+                <h2 class="text-lg font-bold mb-4 px-1">Kurslar kategoriyalari</h2>
+                <div class="md:hidden relative">
+                    <div class="overflow-x-auto pb-4 hide-scrollbar" id="category-slider">
+                        <div class="flex space-x-3" style="min-width: max-content;">
+                            <div th:each="courseGrades :${homePage.courseGrades}" class="bg-gray-700 text-white rounded-lg overflow-hidden w-48">
+                                <div class="p-4">
+                                    <h3 class="text-sm font-medium mb-4" th:text="${courseGrades.name}"></h3>
+                                    <a th:href="@{/courses/view/science/{id}(id=${courseGrades.id})} + '?scienceName=' + ${courseGrades.name}"
+                                       class="bg-green-500 text-white text-xs px-3 py-1 rounded hover:bg-green-600 transition">
+                                        Batafsil
+                                    </a>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="absolute left-0 top-1/2 -translate-y-1/2 bg-gradient-to-r from-white via-white to-transparent w-8 h-full pointer-events-none"></div>
+                    <div class="absolute right-0 top-1/2 -translate-y-1/2 bg-gradient-to-l from-white via-white to-transparent w-8 h-full pointer-events-none"></div>
+                </div>
+
+                <!-- Desktop Category Grid -->
+                <div class="hidden md:grid md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    <div  th:each="courseGrades :${homePage.courseGrades}" class="bg-gray-700 text-white rounded-lg overflow-hidden">
+                        <div class="p-4">
+                            <h3 class="text-sm font-medium mb-4" th:text="${courseGrades.name}"></h3>
+                            <a th:href="@{/courses/view/science/{id}(id=${courseGrades.id})} + '?scienceName=' + ${courseGrades.name}"
+                               class="bg-green-500 text-white text-xs px-3 py-1 rounded hover:bg-green-600 transition">
+                                Batafsil
+                            </a>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="container mx-auto p-6  md:py-8">
+                <h2 class="text-lg font-bold mb-4 px-1">Mashhur kurslar</h2>
+
+                <!-- Mobile Course Slider -->
+                <div class="md:hidden relative">
+                    <div class="overflow-x-auto pb-4 hide-scrollbar" id="course-slider">
+                        <div class="flex space-x-4" style="min-width: max-content;">
+                            <!-- Course Card 1 -->
+                            <div th:each="course:${homePage.courses}" class="border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm hover:shadow-md transition w-64">
+                                <div class="bg-blue-500 p-4 flex items-center justify-between">
+                                    <div>
+                                        <h3 class="text-white font-bold" th:text="${course.name}"></h3>
+                                        <p class="text-white text-xs" th:text="${course.type}"></p>
+                                    </div>
+                                </div>
+                                <div class="p-4">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <div class="flex items-center">
+                                            <i data-lucide="user" class="w-3.5 h-3.5 text-gray-500"></i>
+                                            <span class="text-xs text-gray-500 ml-1" th:text="${course.countStudents}">245</span>
+                                        </div>
+                                        <div class="flex items-center">
+                                            <i data-lucide="star" class="w-3.5 h-3.5 text-gray-500"></i>
+                                            <span class="text-xs text-gray-500 ml-1" th:text="${course.averageRating}">4.8</span>
+                                        </div>
+                                        <div class="flex items-center">
+                                            <i data-lucide="bar-chart-2" class="w-3.5 h-3.5 text-gray-500"></i>
+                                            <span class="text-xs text-gray-500 ml-1" th:text="${course.countLessons}">42</span>
+                                        </div>
+                                    </div>
+                                    <div class="flex">
+                                        <i data-lucide="star" class="w-4 h-4 text-yellow-400"></i>
+                                        <i data-lucide="star" class="w-4 h-4 text-yellow-400"></i>
+                                        <i data-lucide="star" class="w-4 h-4 text-yellow-400"></i>
+                                        <i data-lucide="star" class="w-4 h-4 text-yellow-400"></i>
+                                        <i data-lucide="star" class="w-4 h-4 text-yellow-400"></i>
+                                        <span class="text-xs text-gray-500 ml-1">([[${course.ratings}]])</span>
+                                    </div>
+                                    <div class="mt-4">
+                                        <a th:href="@{/courses/view/{id}(id=${course.id})}" class="bg-green-500 text-white w-full py-2 rounded hover:bg-green-600 transition text-sm flex items-center justify-center px-4 h-10">
+                                            Sotib olish
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="absolute left-0 top-1/2 -translate-y-1/2 bg-gradient-to-r from-white via-white to-transparent w-8 h-full pointer-events-none"></div>
+                    <div class="absolute right-0 top-1/2 -translate-y-1/2 bg-gradient-to-l from-white via-white to-transparent w-8 h-full pointer-events-none"></div>
+                </div>
+
+                <!-- Desktop Course Grid -->
+                <div class="hidden md:grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div th:each="course:${homePage.courses}" class="border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm hover:shadow-md transition">
+                        <div class="bg-blue-500 p-4 flex items-center justify-between">
+                            <div>
+                                <h3 class="text-white font-bold" th:text="${course.name}"></h3>
+                                <p class="text-white text-xs" th:text="${course.type}"></p>
+                            </div>
+                        </div>
+                        <div class="p-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <div class="flex items-center">
+                                    <i data-lucide="user" class="w-3.5 h-3.5 text-gray-500"></i>
+                                    <span class="text-xs text-gray-500 ml-1" th:text="${course.countStudents}"></span>
+                                </div>
+                                <div class="flex items-center">
+                                    <i data-lucide="star" class="w-3.5 h-3.5 text-gray-500"></i>
+                                    <span class="text-xs text-gray-500 ml-1" th:text="${course.averageRating}"></span>
+                                </div>
+                                <div class="flex items-center">
+                                    <i data-lucide="bar-chart-2" class="w-3.5 h-3.5 text-gray-500"></i>
+                                    <span class="text-xs text-gray-500 ml-1" th:text="${course.countLessons}"></span>
+                                </div>
+                            </div>
+                            <div class="flex">
+                                <i data-lucide="star" class="w-4 h-4 text-yellow-400"></i>
+                                <i data-lucide="star" class="w-4 h-4 text-yellow-400"></i>
+                                <i data-lucide="star" class="w-4 h-4 text-yellow-400"></i>
+                                <i data-lucide="star" class="w-4 h-4 text-yellow-400"></i>
+                                <i data-lucide="star" class="w-4 h-4 text-yellow-400"></i>
+                                <span class="text-xs text-gray-500 ml-1" th:text="${course.ratings}">([[${course.ratings}]])</span>
+                            </div>
+                            <div class="mt-4">
+                                <a th:href="@{/courses/view/{id}(id=${course.id})}" class="bg-green-500 text-white w-full py-2 rounded hover:bg-green-600 transition text-sm flex items-center justify-center px-4 h-10">
+                                    Sotib olish
+                                </a>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-center mt-8">
+                    <a th:href="@{/courses}" class="bg-green-500 text-white px-6 py-2 rounded hover:bg-green-600 transition">
+                        Barcha kurslar
+                    </a>
+                </div>
+            </div>
+            <div class="bg-green-500 py-8 md:py-12">
+                <div class="container mx-auto px-4">
+                    <h2 class="text-xl font-bold text-white mb-6 md:mb-8 text-center">Qanday foydalanaman?</h2>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+                        <div class="bg-white p-4 md:p-6 rounded-lg flex">
+                            <div class="flex-grow">
+                                <h3 class="font-bold mb-2">Sizni qiziqtirgan kurslarni toping</h3>
+                                <p class="text-sm text-gray-600 mb-4">
+                                    Barcha fanlar bo'yicha kurslar mavjud. Filtrlash orqali qidirishni osonlashtiring, kerakli fanlar sizga taklif qilinadi.
+                                </p>
+                            </div>
+                            <div class="ml-4 text-green-500">
+                                <i data-lucide="search" class="w-10 h-10 md:w-12 md:h-12"></i>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-4 md:p-6 rounded-lg flex">
+                            <div class="flex-grow">
+                                <h3 class="font-bold mb-2">Kurslarga a'zo bo'ling</h3>
+                                <p class="text-sm text-gray-600 mb-4">
+                                    Kurslarni sotib oling, shaxsiy kabinetingizda ko'ring. Istalgan vaqtda o'qishingiz mumkin.
+                                </p>
+                            </div>
+                            <div class="ml-4 text-green-500">
+                                <i data-lucide="user" class="w-10 h-10 md:w-12 md:h-12"></i>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-4 md:p-6 rounded-lg flex">
+                            <div class="flex-grow">
+                                <h3 class="font-bold mb-2">Onlayn ta'lim oling</h3>
+                                <p class="text-sm text-gray-600 mb-4">
+                                    Kurslarni o'rganib, testlarni ishlang. Bilimingizni mustahkamlang, natijalaringizni kuzating.
+                                </p>
+                            </div>
+                            <div class="ml-4 text-green-500">
+                                <i data-lucide="monitor" class="w-10 h-10 md:w-12 md:h-12"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Online Learning Benefits -->
+            <div class="container mx-auto px-4 py-8 md:py-12">
+                <h2 class="text-xl font-bold mb-6 md:mb-8 text-center">Onlayn ta'lim haqida</h2>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+                    <div class="text-center">
+                        <h3 class="font-bold mb-2">Eng yetakchi o'qituvchilar</h3>
+                        <p class="text-sm text-gray-600">
+                            Respublikaning eng yetakchi o'qituvchilari tomonidan tayyorlangan, eng samarali usullar orqali o'qitish.
+                        </p>
+                    </div>
+
+                    <div class="text-center">
+                        <h3 class="font-bold mb-2">Hamyonbop narxlar</h3>
+                        <p class="text-sm text-gray-600">
+                            Barcha kurslar hamyonbop narxlarda. O'zingizga kerakli kurslarni tanlang va o'qishni boshlang.
+                        </p>
+                    </div>
+
+                    <div class="text-center">
+                        <h3 class="font-bold mb-2">Cheksiz yozilishlar</h3>
+                        <p class="text-sm text-gray-600">
+                            Barcha kurslarga cheksiz kirish imkoniyati mavjud. Istalgan vaqtda qayta ko'rishingiz mumkin.
+                        </p>
+                    </div>
+
+                    <div class="text-center">
+                        <h3 class="font-bold mb-2">Natijalaringizni kuzating</h3>
+                        <p class="text-sm text-gray-600">
+                            Bilimingizni o'zlashtirishingiz haqidagi hisobotlar bilan, sizni o'zingizni, o'qituvchilar esa o'quvchilarini kuzatishi mumkin.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-gray-100 py-8 md:py-12">
+                <div class="container mx-auto px-4">
+                    <h2 class="text-xl font-bold mb-6 md:mb-8 text-center">Foydalanuvchilarimiz fikrlari</h2>
+
+                    <div class="md:hidden relative">
+                        <div class="overflow-x-auto pb-4 hide-scrollbar" id="testimonial-slider">
+                            <div class="flex space-x-4" style="min-width: max-content;">
+
+                                <div class="bg-white p-6 rounded-lg w-72" th:each="comment: ${homePage.comments}">
+                                    <div class="flex mb-2">
+                                        <i data-lucide="star" class="w-4 h-4 text-yellow-400"></i>
+                                        <i data-lucide="star" class="w-4 h-4 text-yellow-400"></i>
+                                        <i data-lucide="star" class="w-4 h-4 text-yellow-400"></i>
+                                        <i data-lucide="star" class="w-4 h-4 text-yellow-400"></i>
+                                        <i data-lucide="star" class="w-4 h-4 text-yellow-400"></i>
+                                    </div>
+                                    <p class="text-sm text-gray-600 mb-4" th:text="${comment.word}"></p>
+                                    <div class="text-right">
+                                        <p class="font-bold text-sm" th:text="${comment.userFullName}"></p>
+                                        <p class="text-xs text-gray-500" th:text="${comment.userPosition}"></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="absolute left-0 top-1/2 -translate-y-1/2 bg-gradient-to-r from-gray-100 via-gray-100 to-transparent w-8 h-full pointer-events-none"></div>
+                        <div class="absolute right-0 top-1/2 -translate-y-1/2 bg-gradient-to-l from-gray-100 via-gray-100 to-transparent w-8 h-full pointer-events-none"></div>
+                    </div>
+
+                    <div class="hidden md:grid md:grid-cols-3 gap-6">
+                        <div class="bg-white p-6 rounded-lg" th:each="comment: ${homePage.comments}">
+                            <div class="flex mb-2">
+                                <i data-lucide="star" class="w-4 h-4 text-yellow-400"></i>
+                                <i data-lucide="star" class="w-4 h-4 text-yellow-400"></i>
+                                <i data-lucide="star" class="w-4 h-4 text-yellow-400"></i>
+                                <i data-lucide="star" class="w-4 h-4 text-yellow-400"></i>
+                                <i data-lucide="star" class="w-4 h-4 text-yellow-400"></i>
+                            </div>
+                            <p class="text-sm text-gray-600 mb-4" th:text="${comment.word}"></p>
+                            <div class="text-right">
+                                <p class="font-bold text-sm" th:text="${comment.userFullName}"></p>
+                                <p class="text-xs text-gray-500" th:text="${comment.userPosition}">Abituriyent</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <script>
+                document.addEventListener('DOMContentLoaded', function () {
+                    const slides = [
+                        {
+                            title: "Rus tili orqali ideal karyera qurish va farzandingiz ta'limini oshirishni istaysizmi?",
+                            buttonText: "TO'LIQ",
+                            bgColor: "bg-yellow-200"
+                        },
+                        {
+                            title: "Matematika va fizika fanlaridan chuqurlashtirilgan bilim olishni xohlaysizmi?",
+                            buttonText: "KO'PROQ",
+                            bgColor: "bg-blue-400"
+                        },
+                        {
+                            title: "Ingliz tilini o'rganish uchun eng yaxshi kurslar bizda mavjud!",
+                            buttonText: "BATAFSIL",
+                            bgColor: "bg-green-500"
+                        }
+                    ];
+
+                    let currentSlide = 0;
+                    const slider = document.getElementById('hero-slider');
+                    const sliderTitle = document.getElementById('slider-title');
+                    const sliderButton = document.getElementById('slider-button');
+                    const indicators = document.querySelectorAll('.indicator');
+
+                    function updateSlider() {
+                        sliderTitle.classList.add('opacity-0');
+                        sliderButton.classList.add('opacity-0');
+
+                        setTimeout(() => {
+                            slider.className = `relative w-full mx-auto bg-white shadow-md rounded-xl max-w-4xl overflow-hidden transition-colors duration-500 ease-in-out ${slides[currentSlide].bgColor}`;
+                            sliderTitle.textContent = slides[currentSlide].title;
+                            sliderButton.textContent = slides[currentSlide].buttonText;
+
+                            sliderTitle.classList.remove('opacity-0');
+                            sliderButton.classList.remove('opacity-0');
+
+                            indicators.forEach((indicator, index) => {
+                                indicator.classList.toggle('opacity-100', index === currentSlide);
+                                indicator.classList.toggle('opacity-50', index !== currentSlide);
+                            });
+                        }, 300);
+                    }
+
+                    function nextSlide() {
+                        currentSlide = (currentSlide + 1) % slides.length;
+                        updateSlider();
+                    }
+
+                    function prevSlide() {
+                        currentSlide = (currentSlide - 1 + slides.length) % slides.length;
+                        updateSlider();
+                    }
+
+                    document.getElementById('next-slide').addEventListener('click', nextSlide);
+                    document.getElementById('prev-slide').addEventListener('click', prevSlide);
+
+                    indicators.forEach((indicator, index) => {
+                        indicator.addEventListener('click', () => {
+                            currentSlide = index;
+                            updateSlider();
+                        });
+                    });
+
+                    setInterval(nextSlide, 5000);
+
+                    window.onload = function() {
+                        let successMessage = "[[${message}]]";
+                        let errorMessage = "[[${messageError}]]";
+
+                        if (successMessage && successMessage !== "null") {
+                            showPopup(successMessage, false);
+                        } else if (errorMessage && errorMessage !== "null") {
+                            showPopup(errorMessage, true);
+                        }
+                    };
+
+                    function showPopup(msg, isError) {
+                        document.getElementById("backgroundBlur").classList.remove("hide");
+                        document.getElementById("popupAlert").classList.remove("hide");
+                        document.getElementById("popupMessage").innerText = msg;
+
+                        let buttonsContainer = document.getElementById("popupButtons");
+                        buttonsContainer.innerHTML = '<button class="popup-close-btn" onclick="closePopup()">Yopish</button>';
+
+                        if (isError) {
+                            let loginButton = document.createElement("button");
+                            loginButton.className = "popup-login-btn";
+                            loginButton.innerHTML = '<button class="ml-2 w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600 transition" onclick="closePopup()">Kirish</button>';
+                            loginButton.onclick = toggleModal;
+                            buttonsContainer.appendChild(loginButton);
+                        }
+                    }
+
+
+                });
+                function closePopup() {
+                    document.getElementById("backgroundBlur").classList.add("hide");
+                    document.getElementById("popupAlert").classList.add("hide");
+                }
+            </script>
+        </div>
+    </body>
+</html>

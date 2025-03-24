@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test topshirish - PREP.UZ</title>
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'prep-blue': '#3b82f6',
+            'prep-blue-dark': '#2563eb',
+            'prep-green': '#4ade80',
+            'prep-green-dark': '#22c55e',
+            'prep-red': '#f87171',
+            'prep-red-dark': '#ef4444',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    .question-card {
+      transition: all 0.3s ease;
+    }
+
+    .animate-in {
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .progress-ring__circle {
+      transition: stroke-dashoffset 0.35s;
+      transform: rotate(-90deg);
+      transform-origin: 50% 50%;
+    }
+
+    .question-number-btn {
+      transition: all 0.2s ease;
+    }
+
+    .question-number-btn:hover {
+      transform: translateY(-2px);
+    }
+
+    .question-number-btn.active {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+
+    .question-number-btn.answered {
+      background-color: #bfdbfe;
+      color: #1e40af;
+      border-color: #93c5fd;
+    }
+  </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+<div class="max-w-4xl mx-auto px-4 py-8">
+  <!-- Welcome Screen (initially visible) -->
+  <div id="welcomeScreen" class="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200 animate-in">
+    <div class="bg-gradient-to-r from-prep-blue to-prep-blue-dark p-8 text-white text-center">
+      <h1 class="text-3xl font-bold mb-2" id="welcomeTestTitle">Matematika testi</h1>
+      <p class="text-blue-100 text-lg" id="welcomeTestInfo">10-sinf, 2-chorak</p>
+    </div>
+
+    <div class="p-8">
+      <div class="flex flex-col md:flex-row justify-center items-center space-y-6 md:space-y-0 md:space-x-12 mb-8">
+        <div class="flex items-center">
+          <div class="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center mr-4">
+            <i data-lucide="file-question" class="w-8 h-8 text-prep-blue"></i>
+          </div>
+          <div>
+            <p class="text-gray-500">Jami savollar</p>
+            <p class="text-2xl font-semibold text-gray-800" id="welcomeTotalQuestions">20 ta</p>
+          </div>
+        </div>
+
+        <div class="flex items-center">
+          <div class="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center mr-4">
+            <i data-lucide="timer" class="w-8 h-8 text-prep-blue"></i>
+          </div>
+          <div>
+            <p class="text-gray-500">Test vaqti</p>
+            <p class="text-2xl font-semibold text-gray-800" id="welcomeTestDuration">45 daqiqa</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-8">
+        <h3 class="text-lg font-semibold text-gray-800 mb-2">Test haqida ma'lumot:</h3>
+        <ul class="space-y-2 text-gray-700">
+          <li class="flex items-start">
+            <i data-lucide="check" class="w-5 h-5 text-prep-blue mr-2 flex-shrink-0 mt-0.5"></i>
+            <span>Testni boshlash uchun "Testni boshlash" tugmasini bosing.</span>
+          </li>
+          <li class="flex items-start">
+            <i data-lucide="check" class="w-5 h-5 text-prep-blue mr-2 flex-shrink-0 mt-0.5"></i>
+            <span>Har bir savol uchun to'g'ri javobni tanlang.</span>
+          </li>
+          <li class="flex items-start">
+            <i data-lucide="check" class="w-5 h-5 text-prep-blue mr-2 flex-shrink-0 mt-0.5"></i>
+            <span>Savollar orasida "Keyingi" va "Oldingi" tugmalari orqali harakatlanishingiz mumkin.</span>
+          </li>
+          <li class="flex items-start">
+            <i data-lucide="check" class="w-5 h-5 text-prep-blue mr-2 flex-shrink-0 mt-0.5"></i>
+            <span>Pastdagi raqamlar orqali istalgan savolga o'tishingiz mumkin.</span>
+          </li>
+          <li class="flex items-start">
+            <i data-lucide="check" class="w-5 h-5 text-prep-blue mr-2 flex-shrink-0 mt-0.5"></i>
+            <span>Testni yakunlash uchun "Testni yakunlash" tugmasini bosing.</span>
+          </li>
+        </ul>
+      </div>
+
+      <div class="text-center">
+        <button id="startTestBtn" class="px-8 py-4 bg-gradient-to-r from-prep-blue to-prep-blue-dark border border-transparent rounded-lg shadow-md text-lg font-medium text-white hover:from-prep-blue-dark hover:to-prep-blue focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-prep-blue transition-colors">
+          Testni boshlash
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Test Header (initially hidden) -->
+  <div id="testHeader" class="hidden bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200 mb-6">
+    <div class="bg-gradient-to-r from-prep-blue to-prep-blue-dark p-6 text-white">
+      <h1 class="text-2xl font-bold" id="testTitle">Matematika testi</h1>
+      <div class="flex justify-between items-center mt-2">
+        <p class="text-blue-100" id="testInfo">10-sinf, 2-chorak</p>
+        <div class="flex items-center">
+          <i data-lucide="clock" class="w-5 h-5 mr-1 text-blue-100"></i>
+          <span id="remainingTime">45:00</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="p-6 flex flex-col md:flex-row justify-between items-center border-b border-gray-200">
+      <div class="flex items-center mb-4 md:mb-0">
+        <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center mr-4">
+          <i data-lucide="file-question" class="w-6 h-6 text-prep-blue"></i>
+        </div>
+        <div>
+          <p class="text-gray-500">Jami savollar</p>
+          <p class="text-xl font-semibold text-gray-800" id="totalQuestions">20 ta</p>
+        </div>
+      </div>
+
+      <div class="flex items-center">
+        <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center mr-4">
+          <i data-lucide="timer" class="w-6 h-6 text-prep-blue"></i>
+        </div>
+        <div>
+          <p class="text-gray-500">Qolgan vaqt</p>
+          <p class="text-xl font-semibold text-gray-800" id="remainingTimeDisplay">45:00</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Test Content (initially hidden) -->
+  <div id="testContent" class="hidden">
+    <div id="currentQuestionContainer" class="mb-6">
+      <!-- Current question will be loaded here -->
+    </div>
+
+    <!-- Navigation Buttons -->
+    <div class="flex justify-between mb-6">
+      <button id="prevQuestionBtn" class="px-4 py-2 border border-gray-300 rounded-lg shadow-sm text-base font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-prep-blue transition-colors">
+        <i data-lucide="arrow-left" class="w-5 h-5 mr-1 inline-block"></i> Oldingi
+      </button>
+      <button id="submitTestBtn" class="px-6 py-2 bg-gradient-to-r from-prep-blue to-prep-blue-dark border border-transparent rounded-lg shadow-sm text-base font-medium text-white hover:from-prep-blue-dark hover:to-prep-blue focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-prep-blue transition-colors">
+        Testni yakunlash
+      </button>
+      <button id="nextQuestionBtn" class="px-4 py-2 border border-gray-300 rounded-lg shadow-sm text-base font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-prep-blue transition-colors">
+        Keyingi <i data-lucide="arrow-right" class="w-5 h-5 ml-1 inline-block"></i>
+      </button>
+    </div>
+
+    <!-- Question Numbers -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+      <p class="text-sm text-gray-500 mb-3">Savollar:</p>
+      <div id="questionNumbersContainer" class="flex flex-wrap gap-2">
+        <!-- Question number buttons will be generated here -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Results Section (initially hidden) -->
+  <div id="resultsSection" class="hidden animate-in">
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200 mb-6">
+      <div class="bg-gradient-to-r from-prep-blue to-prep-blue-dark p-6 text-white">
+        <h2 class="text-2xl font-bold">Test natijalari</h2>
+        <p class="text-blue-100 mt-1">Sizning natijalaringiz bilan tanishing</p>
+      </div>
+
+      <div class="p-6">
+        <div class="flex flex-col md:flex-row items-center justify-between">
+          <div class="flex items-center mb-6 md:mb-0">
+            <div class="relative w-24 h-24 mr-6">
+              <svg class="w-24 h-24" viewBox="0 0 36 36">
+                <path class="stroke-current text-gray-200" fill="none" stroke-width="3" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"></path>
+                <path id="scoreCircle" class="progress-ring__circle stroke-current text-prep-green" fill="none" stroke-width="3" stroke-dasharray="100, 100" stroke-dashoffset="0" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"></path>
+              </svg>
+              <div class="absolute inset-0 flex items-center justify-center">
+                <span id="scorePercentage" class="text-2xl font-bold">0%</span>
+              </div>
+            </div>
+            <div>
+              <p class="text-gray-500">Sizning natijangiz</p>
+              <p class="text-2xl font-semibold text-gray-800"><span id="correctAnswers">0</span> / <span id="totalQuestionsResult">0</span></p>
+              <p id="resultMessage" class="text-prep-blue font-medium mt-1">Natijangiz haqida xulosa</p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div class="bg-green-50 p-4 rounded-lg border border-prep-green">
+              <p class="text-gray-700">To'g'ri javoblar</p>
+              <p class="text-2xl font-semibold text-prep-green" id="correctCount">0</p>
+            </div>
+            <div class="bg-red-50 p-4 rounded-lg border border-prep-red">
+              <p class="text-gray-700">Noto'g'ri javoblar</p>
+              <p class="text-2xl font-semibold text-prep-red" id="incorrectCount">0</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="answersReviewContainer" class="space-y-6">
+      <!-- Answered questions with feedback will be shown here -->
+    </div>
+
+    <!-- Restart Button -->
+    <div class="flex justify-center mt-8 mb-4">
+      <button id="restartTestBtn" class="px-6 py-3 bg-gradient-to-r from-prep-blue to-prep-blue-dark border border-transparent rounded-lg shadow-sm text-base font-medium text-white hover:from-prep-blue-dark hover:to-prep-blue focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-prep-blue transition-colors">
+        Qaytadan boshlash
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Initialize Lucide Icons -->
+<script>
+  lucide.createIcons();
+</script>
+
+<!-- JavaScript for Test Handling -->
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Elements
+    const welcomeScreen = document.getElementById('welcomeScreen');
+    const testHeader = document.getElementById('testHeader');
+    const testContent = document.getElementById('testContent');
+    const resultsSection = document.getElementById('resultsSection');
+    const currentQuestionContainer = document.getElementById('currentQuestionContainer');
+    const questionNumbersContainer = document.getElementById('questionNumbersContainer');
+    const answersReviewContainer = document.getElementById('answersReviewContainer');
+
+    const startTestBtn = document.getElementById('startTestBtn');
+    const prevQuestionBtn = document.getElementById('prevQuestionBtn');
+    const nextQuestionBtn = document.getElementById('nextQuestionBtn');
+    const submitTestBtn = document.getElementById('submitTestBtn');
+    const restartTestBtn = document.getElementById('restartTestBtn');
+
+    const remainingTimeDisplay = document.getElementById('remainingTimeDisplay');
+
+    // Result elements
+    const scorePercentage = document.getElementById('scorePercentage');
+    const scoreCircle = document.getElementById('scoreCircle');
+    const correctAnswers = document.getElementById('correctAnswers');
+    const totalQuestionsResult = document.getElementById('totalQuestionsResult');
+    const correctCount = document.getElementById('correctCount');
+    const incorrectCount = document.getElementById('incorrectCount');
+    const resultMessage = document.getElementById('resultMessage');
+
+    // Test data (would normally be loaded from server)
+    const testData = {
+      id: 1,
+      title: "Matematika testi",
+      info: "10-sinf, 2-chorak",
+      duration: 45, // minutes
+      questions: [
+        {
+          id: 1,
+          text: "Quyidagi tenglamani yeching: 2x + 5 = 15",
+          image: null,
+          options: [
+            { id: 1, text: "x = 5" },
+            { id: 2, text: "x = 10" },
+            { id: 3, text: "x = 7" },
+            { id: 4, text: "x = 8" }
+          ],
+          correctOptionId: 1
+        },
+        {
+          id: 2,
+          text: "Quyidagi geometrik shaklning yuzini toping:",
+          image: "https://sjc.microlink.io/-GhpEAjjZKYHENJiuWIBZDWMD6H4AlMx3kB_Zh0P5J7y1CFLdaRvqdoGbs96cQ7O0ubfToBUuyKEe071zSD4qw.jpeg", // This would be a real image URL
+          options: [
+            { id: 1, text: "16 cm²" },
+            { id: 2, text: "25 cm²" },
+            { id: 3, text: "36 cm²" },
+            { id: 4, text: "49 cm²" }
+          ],
+          correctOptionId: 3
+        },
+        {
+          id: 3,
+          text: "Quyidagi ifodani soddalashtiring: (a + b)² - (a - b)²",
+          image: null,
+          options: [
+            { id: 1, text: "2a²" },
+            { id: 2, text: "2b²" },
+            { id: 3, text: "4ab" },
+            { id: 4, text: "a² + b²" }
+          ],
+          correctOptionId: 3
+        },
+        {
+          id: 4,
+          text: "Agar f(x) = 3x² - 2x + 1 bo'lsa, f(2) nechiga teng?",
+          image: null,
+          options: [
+            { id: 1, text: "9" },
+            { id: 2, text: "11" },
+            { id: 3, text: "13" },
+            { id: 4, text: "15" }
+          ],
+          correctOptionId: 2
+        },
+        {
+          id: 5,
+          text: "Quyidagi sonlar orasidan eng katta sonni toping:",
+          image: null,
+          options: [
+            { id: 1, text: "0.75" },
+            { id: 2, text: "3/4" },
+            { id: 3, text: "0.8" },
+            { id: 4, text: "7/10" }
+          ],
+          correctOptionId: 3
+        }
+      ]
+    };
+
+    // Variables
+    let timer;
+    let timeRemaining = testData.duration * 60;
+    let userAnswers = {};
+    let currentQuestionIndex = 0;
+    let testStartTime = null;
+    let isSubmitting = false;
+
+    // Initialize welcome screen
+    function initWelcomeScreen() {
+      document.getElementById('welcomeTestTitle').textContent = testData.title;
+      document.getElementById('welcomeTestInfo').textContent = testData.info;
+      document.getElementById('welcomeTotalQuestions').textContent = `${testData.questions.length} ta`;
+      document.getElementById('welcomeTestDuration').textContent = `${testData.duration} daqiqa`;
+
+      startTestBtn.addEventListener('click', startTest);
+    }
+
+    // Start test
+    function startTest() {
+      // Hide welcome screen
+      welcomeScreen.classList.add('hidden');
+
+      // Show test header and content
+      testHeader.classList.remove('hidden');
+      testContent.classList.remove('hidden');
+
+      // Record test start time
+      testStartTime = new Date();
+
+      // Initialize test
+      initTest();
+    }
+
+    // Initialize test
+    function initTest() {
+      // Update test info
+      document.getElementById('testTitle').textContent = testData.title;
+      document.getElementById('testInfo').textContent = testData.info;
+      document.getElementById('totalQuestions').textContent = `${testData.questions.length} ta`;
+      document.getElementById('totalQuestionsResult').textContent = testData.questions.length;
+
+      // Generate question number buttons
+      generateQuestionNumbers();
+
+      // Load first question
+      loadQuestion(0);
+
+      // Start timer
+      startTimer();
+
+      // Add event listeners
+      prevQuestionBtn.addEventListener('click', goToPreviousQuestion);
+      nextQuestionBtn.addEventListener('click', goToNextQuestion);
+      submitTestBtn.addEventListener('click', submitTest);
+      restartTestBtn.addEventListener('click', restartTest);
+
+      // Update navigation buttons
+      updateNavigationButtons();
+    }
+
+    // Generate question number buttons
+    function generateQuestionNumbers() {
+      questionNumbersContainer.innerHTML = '';
+
+      testData.questions.forEach((question, index) => {
+        const button = document.createElement('button');
+        button.className = 'question-number-btn w-10 h-10 flex items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-700 font-medium shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-prep-blue';
+        button.textContent = index + 1;
+        button.dataset.index = index;
+
+        if (index === 0) {
+          button.classList.add('active');
+          button.classList.add('bg-prep-blue');
+          button.classList.add('text-white');
+          button.classList.add('border-prep-blue');
+        }
+
+        button.addEventListener('click', function() {
+          loadQuestion(parseInt(this.dataset.index));
+        });
+
+        questionNumbersContainer.appendChild(button);
+      });
+    }
+
+    // Load question
+    function loadQuestion(index) {
+      currentQuestionIndex = index;
+      const question = testData.questions[index];
+
+      // Create question card
+      const questionCard = document.createElement('div');
+      questionCard.className = 'question-card p-5 border border-gray-200 rounded-xl bg-white animate-in';
+
+      let questionHTML = `
+                    <div class="flex justify-between items-start mb-4">
+                        <h3 class="text-base font-semibold text-gray-700">Savol ${index + 1}</h3>
+                        <div class="bg-blue-100 text-prep-blue px-3 py-1 rounded-full text-sm font-medium">
+                            ${index + 1}/${testData.questions.length}
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <p class="text-gray-800">${question.text}</p>
+                `;
+
+      // Add image if exists
+      if (question.image) {
+        questionHTML += `
+                        <div class="mt-3">
+                            <img src="data:image/png;base64,${question.image}" alt="Savol rasmi" class="max-h-60 mx-auto rounded-lg">
+                        </div>
+                    `;
+      }
+
+      questionHTML += `</div><div class="space-y-3">`;
+
+      // Add options
+      question.options.forEach(option => {
+        const isChecked = userAnswers[question.id] === option.id;
+        questionHTML += `
+                        <label class="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors ${isChecked ? 'bg-blue-50 border-blue-300' : ''}">
+                            <input type="radio" name="question_${question.id}" value="${option.id}" class="h-5 w-5 text-prep-blue border-gray-300 focus:ring-prep-blue" ${isChecked ? 'checked' : ''}>
+                            <span class="ml-3">${option.text}</span>
+                        </label>
+                    `;
+      });
+
+      questionHTML += `</div>`;
+
+      questionCard.innerHTML = questionHTML;
+
+      // Clear current question container and add new question
+      currentQuestionContainer.innerHTML = '';
+      currentQuestionContainer.appendChild(questionCard);
+
+      // Add event listeners to radio buttons
+      const radioButtons = questionCard.querySelectorAll(`input[name="question_${question.id}"]`);
+      radioButtons.forEach(radio => {
+        radio.addEventListener('change', function() {
+          userAnswers[question.id] = parseInt(this.value);
+          updateQuestionNumberButton(index);
+        });
+      });
+
+      // Update question number buttons
+      updateQuestionNumberButtons();
+
+      // Update navigation buttons
+      updateNavigationButtons();
+    }
+
+    // Update question number button
+    function updateQuestionNumberButton(index) {
+      const buttons = questionNumbersContainer.querySelectorAll('.question-number-btn');
+      const button = buttons[index];
+
+      if (userAnswers[testData.questions[index].id] !== undefined) {
+        button.classList.add('answered');
+      } else {
+        button.classList.remove('answered');
+      }
+    }
+
+    // Update all question number buttons
+    function updateQuestionNumberButtons() {
+      const buttons = questionNumbersContainer.querySelectorAll('.question-number-btn');
+
+      buttons.forEach((button, index) => {
+        // Remove active class from all buttons
+        button.classList.remove('active');
+        button.classList.remove('bg-prep-blue');
+        button.classList.remove('text-white');
+        button.classList.remove('border-prep-blue');
+
+        // Add active class to current question button
+        if (index === currentQuestionIndex) {
+          button.classList.add('active');
+          button.classList.add('bg-prep-blue');
+          button.classList.add('text-white');
+          button.classList.add('border-prep-blue');
+        }
+
+        // Add answered class if question is answered
+        if (userAnswers[testData.questions[index].id] !== undefined) {
+          button.classList.add('answered');
+        } else {
+          button.classList.remove('answered');
+        }
+      });
+    }
+
+    // Update navigation buttons
+    function updateNavigationButtons() {
+      // Disable previous button if on first question
+      if (currentQuestionIndex === 0) {
+        prevQuestionBtn.disabled = true;
+        prevQuestionBtn.classList.add('opacity-50', 'cursor-not-allowed');
+      } else {
+        prevQuestionBtn.disabled = false;
+        prevQuestionBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+      }
+
+      // Disable next button if on last question
+      if (currentQuestionIndex === testData.questions.length - 1) {
+        nextQuestionBtn.disabled = true;
+        nextQuestionBtn.classList.add('opacity-50', 'cursor-not-allowed');
+      } else {
+        nextQuestionBtn.disabled = false;
+        nextQuestionBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+      }
+    }
+
+    // Go to previous question
+    function goToPreviousQuestion() {
+      if (currentQuestionIndex > 0) {
+        loadQuestion(currentQuestionIndex - 1);
+      }
+    }
+
+    // Go to next question
+    function goToNextQuestion() {
+      if (currentQuestionIndex < testData.questions.length - 1) {
+        loadQuestion(currentQuestionIndex + 1);
+      }
+    }
+
+    // Start timer
+    function startTimer() {
+      updateTimerDisplay();
+
+      timer = setInterval(() => {
+        timeRemaining--;
+        updateTimerDisplay();
+
+        if (timeRemaining <= 0) {
+          clearInterval(timer);
+          submitTest(true); // Pass true to indicate timeout
+        }
+      }, 1000);
+    }
+
+    // Update timer display
+    function updateTimerDisplay() {
+      const minutes = Math.floor(timeRemaining / 60);
+      const seconds = timeRemaining % 60;
+      remainingTimeDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+      // Change color when time is running out
+      if (timeRemaining < 60) {
+        remainingTimeDisplay.classList.add('text-prep-red');
+      }
+    }
+
+    // Submit test
+    function submitTest(isTimeout = false) {
+      // Prevent multiple submissions
+      if (isSubmitting) return;
+      isSubmitting = true;
+
+      // Stop timer
+      clearInterval(timer);
+
+      // Calculate results
+      const results = calculateResults();
+
+      // Update results UI
+      updateResultsUI(results);
+
+      // Hide test content
+      testHeader.classList.add('hidden');
+      testContent.classList.add('hidden');
+
+      // Show results section
+      resultsSection.classList.remove('hidden');
+
+      // Scroll to top
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+
+      // Calculate time spent
+      const timeSpent = testData.duration * 60 - timeRemaining;
+
+      // Send results to server
+      sendResultsToServer(userAnswers, results, timeSpent, isTimeout);
+    }
+
+    // Calculate results
+    function calculateResults() {
+      let correct = 0;
+      let incorrect = 0;
+      let unanswered = 0;
+
+      testData.questions.forEach(question => {
+        if (userAnswers[question.id] === undefined) {
+          unanswered++;
+        } else if (userAnswers[question.id] === question.correctOptionId) {
+          correct++;
+        } else {
+          incorrect++;
+        }
+      });
+
+      const percentage = Math.round((correct / testData.questions.length) * 100);
+
+      return {
+        correct,
+        incorrect,
+        unanswered,
+        total: testData.questions.length,
+        percentage
+      };
+    }
+
+    // Update results UI
+    function updateResultsUI(results) {
+      // Update score
+      correctAnswers.textContent = results.correct;
+      totalQuestionsResult.textContent = results.total;
+      correctCount.textContent = results.correct;
+      incorrectCount.textContent = results.incorrect + results.unanswered;
+      scorePercentage.textContent = `${results.percentage}%`;
+
+      // Update progress circle
+      const circumference = 2 * Math.PI * 15.9155;
+      const offset = circumference - (results.percentage / 100) * circumference;
+      scoreCircle.style.strokeDasharray = `${circumference} ${circumference}`;
+      scoreCircle.style.strokeDashoffset = offset;
+
+      // Set color based on score
+      if (results.percentage >= 80) {
+        scoreCircle.classList.remove('text-prep-red', 'text-prep-blue');
+        scoreCircle.classList.add('text-prep-green');
+        resultMessage.textContent = 'A\'lo natija!';
+        resultMessage.classList.remove('text-prep-red', 'text-prep-blue');
+        resultMessage.classList.add('text-prep-green');
+      } else if (results.percentage >= 60) {
+        scoreCircle.classList.remove('text-prep-red', 'text-prep-green');
+        scoreCircle.classList.add('text-prep-blue');
+        resultMessage.textContent = 'Yaxshi natija';
+        resultMessage.classList.remove('text-prep-red', 'text-prep-green');
+        resultMessage.classList.add('text-prep-blue');
+      } else {
+        scoreCircle.classList.remove('text-prep-green', 'text-prep-blue');
+        scoreCircle.classList.add('text-prep-red');
+        resultMessage.textContent = 'Yetarli emas';
+        resultMessage.classList.remove('text-prep-green', 'text-prep-blue');
+        resultMessage.classList.add('text-prep-red');
+      }
+
+      // Show answers review
+      showAnswersReview();
+    }
+
+    // Show answers review
+    function showAnswersReview() {
+      answersReviewContainer.innerHTML = '';
+
+      testData.questions.forEach((question, index) => {
+        const userAnswer = userAnswers[question.id];
+        const isCorrect = userAnswer === question.correctOptionId;
+        const isUnanswered = userAnswer === undefined;
+
+        const reviewCard = document.createElement('div');
+        reviewCard.className = 'p-5 border rounded-xl bg-white';
+
+        // Add border color based on answer
+        if (isUnanswered) {
+          reviewCard.classList.add('border-gray-300');
+        } else if (isCorrect) {
+          reviewCard.classList.add('border-prep-green');
+        } else {
+          reviewCard.classList.add('border-prep-red');
+        }
+
+        let reviewHTML = `
+                        <div class="flex justify-between items-start mb-4">
+                            <h3 class="text-base font-semibold text-gray-700">Savol ${index + 1}</h3>
+                            <div class="flex items-center">
+                    `;
+
+        // Add status icon
+        if (isUnanswered) {
+          reviewHTML += `
+                            <div class="bg-gray-100 text-gray-500 px-3 py-1 rounded-full text-sm font-medium flex items-center">
+                                <i data-lucide="help-circle" class="w-4 h-4 mr-1"></i>
+                                Javobsiz
+                            </div>
+                        `;
+        } else if (isCorrect) {
+          reviewHTML += `
+                            <div class="bg-green-100 text-prep-green px-3 py-1 rounded-full text-sm font-medium flex items-center">
+                                <i data-lucide="check-circle" class="w-4 h-4 mr-1"></i>
+                                To'g'ri
+                            </div>
+                        `;
+        } else {
+          reviewHTML += `
+                            <div class="bg-red-100 text-prep-red px-3 py-1 rounded-full text-sm font-medium flex items-center">
+                                <i data-lucide="x-circle" class="w-4 h-4 mr-1"></i>
+                                Noto'g'ri
+                            </div>
+                        `;
+        }
+
+        reviewHTML += `
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <p class="text-gray-800">${question.text}</p>
+                    `;
+
+        // Add image if exists
+        if (question.image) {
+          reviewHTML += `
+                            <div class="mt-3">
+                                <img src="${question.image}" alt="Savol rasmi" class="max-h-60 mx-auto rounded-lg">
+                            </div>
+                        `;
+        }
+
+        reviewHTML += `</div><div class="space-y-3">`;
+
+        // Add options with feedback
+        question.options.forEach(option => {
+          let optionClass = 'border-gray-200 bg-white';
+
+          // Highlight correct answer
+          if (option.id === question.correctOptionId) {
+            optionClass = 'border-prep-green bg-green-50';
+          }
+
+          // Highlight user's incorrect answer
+          if (userAnswer === option.id && option.id !== question.correctOptionId) {
+            optionClass = 'border-prep-red bg-red-50';
+          }
+
+          reviewHTML += `
+                            <div class="flex items-center p-3 border ${optionClass} rounded-lg">
+                                <div class="h-5 w-5 mr-3 flex items-center justify-center">
+                        `;
+
+          // Show appropriate icon
+          if (option.id === question.correctOptionId) {
+            reviewHTML += `<i data-lucide="check-circle" class="w-5 h-5 text-prep-green"></i>`;
+          } else if (userAnswer === option.id) {
+            reviewHTML += `<i data-lucide="x-circle" class="w-5 h-5 text-prep-red"></i>`;
+          } else {
+            reviewHTML += `<div class="h-5 w-5 border border-gray-300 rounded-full"></div>`;
+          }
+
+          reviewHTML += `
+                                </div>
+                                <span>${option.text}</span>
+                            </div>
+                        `;
+        });
+
+        reviewHTML += `</div>`;
+
+        reviewCard.innerHTML = reviewHTML;
+        answersReviewContainer.appendChild(reviewCard);
+      });
+
+      // Initialize icons
+      lucide.createIcons();
+    }
+
+    // Restart test
+    function restartTest() {
+      // Reset variables
+      timeRemaining = testData.duration * 60;
+      userAnswers = {};
+      currentQuestionIndex = 0;
+      isSubmitting = false;
+
+      // Hide results section
+      resultsSection.classList.add('hidden');
+
+      // Show welcome screen
+      welcomeScreen.classList.remove('hidden');
+
+      // Reset timer display
+      remainingTimeDisplay.classList.remove('text-prep-red');
+
+      // Scroll to top
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Send results to server
+    function sendResultsToServer(answers, results, timeSpent, isTimeout) {
+      // Format user answers for submission
+      const formattedAnswers = [];
+
+      for (const questionId in answers) {
+        formattedAnswers.push({
+          questionId: parseInt(questionId),
+          selectedOptionId: answers[questionId]
+        });
+      }
+
+      // Create submission data object
+      const submissionData = {
+        testId: testData.id,
+        testTitle: testData.title,
+        testInfo: testData.info,
+        startTime: testStartTime ? testStartTime.toISOString() : null,
+        endTime: new Date().toISOString(),
+        timeSpent: timeSpent, // in seconds
+        isTimeout: isTimeout,
+        answers: formattedAnswers,
+        results: {
+          correct: results.correct,
+          incorrect: results.incorrect,
+          unanswered: results.unanswered,
+          total: results.total,
+          percentage: results.percentage
+        },
+        questions: testData.questions.map(q => ({
+          id: q.id,
+          text: q.text,
+          correctOptionId: q.correctOptionId,
+          userAnswer: answers[q.id] || null,
+          isCorrect: answers[q.id] === q.correctOptionId,
+          isAnswered: answers[q.id] !== undefined
+        }))
+      };
+
+      // Send data to server
+      fetch('/api/tests/complete', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(submissionData)
+      })
+              .then(response => {
+                if (!response.ok) {
+                  throw new Error('Network response was not ok');
+                }
+                console.log(submissionData)
+                return response.json();
+              })
+              .then(data => {
+                console.log('Test results submitted successfully:', data);
+                console.log(submissionData)
+              })
+              .catch(error => {
+                console.error('Error submitting test results:', error);
+                console.log(submissionData)
+              })
+              .finally(() => {
+                isSubmitting = false;
+              });
+    }
+
+    // Initialize welcome screen
+    initWelcomeScreen();
+  });
+</script>
+</body>
+</html>

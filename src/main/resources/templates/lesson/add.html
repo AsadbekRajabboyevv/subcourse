@@ -1,0 +1,461 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+        layout:decorate="~{layout}">
+    <head>
+        <title>[[#{lesson.add.headline}]]</title>
+        <style>
+            .file-upload-label {
+                position: relative;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                height: 200px;
+                border: 2px dashed #e5e7eb;
+                border-radius: 0.5rem;
+                background-color: #f9fafb;
+                cursor: pointer;
+                transition: all 0.3s ease;
+            }
+
+            .file-upload-label:hover {
+                border-color: #4ade80;
+                background-color: #f0fdf4;
+            }
+
+            .file-upload-input {
+                position: absolute;
+                width: 0;
+                height: 0;
+                opacity: 0;
+            }
+
+            .preview-image {
+                max-height: 180px;
+                max-width: 100%;
+                border-radius: 0.375rem;
+                object-fit: contain;
+            }
+
+            .form-group {
+                margin-bottom: 1.5rem;
+            }
+
+            .form-label {
+                display: block;
+                margin-bottom: 0.5rem;
+                font-weight: 500;
+                color: #374151;
+            }
+
+            .form-input {
+                width: 100%;
+                padding: 0.625rem;
+                border: 1px solid #d1d5db;
+                border-radius: 0.375rem;
+                background-color: white;
+                color: #1f2937;
+                transition: border-color 0.15s ease-in-out;
+            }
+
+            .form-input:focus {
+                outline: none;
+                border-color: #4ade80;
+                box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.2);
+            }
+
+            .form-select {
+                width: 100%;
+                padding: 0.625rem;
+                border: 1px solid #d1d5db;
+                border-radius: 0.375rem;
+                background-color: white;
+                color: #1f2937;
+                transition: border-color 0.15s ease-in-out;
+            }
+
+            .form-select:focus {
+                outline: none;
+                border-color: #4ade80;
+                box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.2);
+            }
+
+            .btn-primary {
+                display: inline-block;
+                padding: 0.625rem 1.25rem;
+                background-color: #4ade80;
+                color: white;
+                font-weight: 500;
+                border-radius: 0.375rem;
+                text-align: center;
+                cursor: pointer;
+                transition: background-color 0.15s ease-in-out;
+            }
+
+            .btn-primary:hover {
+                background-color: #22c55e;
+            }
+
+            .btn-secondary {
+                display: inline-block;
+                padding: 0.625rem 1.25rem;
+                background-color: #e5e7eb;
+                color: #4b5563;
+                font-weight: 500;
+                border-radius: 0.375rem;
+                text-align: center;
+                cursor: pointer;
+                transition: background-color 0.15s ease-in-out;
+            }
+
+            .btn-secondary:hover {
+                background-color: #d1d5db;
+            }
+        </style>
+    </head>
+    <body>
+        <div layout:fragment="content">
+            <div class="container mx-auto px-4 py-8">
+                <div class="max-w-3xl mx-auto bg-white rounded-lg shadow-md overflow-hidden">
+                    <div class="bg-green-400 p-6">
+                        <h1 class="text-2xl font-bold text-white">Yangi dars qo'shish</h1>
+                    </div>
+
+                    <form id="lessonForm" th:method="POST" th:action="@{/courses/add-lesson/{id}(id=${courseId})}" th:object="${lesson}" enctype="multipart/form-data" class="p-6">
+                        <div class="form-group" style="display: flex; gap: 10px;">
+                            <div style="flex: 1;">
+                                <label for="name" class="form-label">Dars mavzusi</label>
+                                <input type="text" id="name" name="name" class="form-input" placeholder="Masalan: Tenglamalar" required>
+                            </div>
+                            <div style="flex: 1;">
+                                <label for="number" class="form-label">Dars raqami</label>
+                                <input type="number" id="number" name="number" class="form-input" placeholder="Dars raqamini kiriting" required>
+                            </div>
+                        </div>
+
+                        <div id="courseContainer" th:data-course-id="${courseId}"></div>
+
+                        <div class="form-group">
+                            <div id="textSection" class="mb-8">
+                                <label for="textSection" class="form-label">Dars matni</label>
+                                <div class="border border-neutral-300 rounded-xl overflow-hidden shadow-sm">
+                                    <div class="flex flex-wrap gap-1 p-3 border-b border-neutral-300 bg-neutral-50">
+                                        <button type="button" class="p-2 rounded hover:bg-neutral-200 text-neutral-600 transition-colors" data-command="bold" title="Bold">
+                                            <i data-lucide="bold" class="w-4 h-4"></i>
+                                        </button>
+                                        <button type="button" class="p-2 rounded hover:bg-neutral-200 text-neutral-600 transition-colors" data-command="italic" title="Italic">
+                                            <i data-lucide="italic" class="w-4 h-4"></i>
+                                        </button>
+                                        <button type="button" class="p-2 rounded hover:bg-neutral-200 text-neutral-600 transition-colors" data-command="underline" title="Underline">
+                                            <i data-lucide="underline" class="w-4 h-4"></i>
+                                        </button>
+                                        <span class="w-px h-6 bg-neutral-300 mx-1"></span>
+                                        <button type="button" class="p-2 rounded hover:bg-neutral-200 text-neutral-600 transition-colors" data-command="justifyLeft" title="Align Left">
+                                            <i data-lucide="align-left" class="w-4 h-4"></i>
+                                        </button>
+                                        <button type="button" class="p-2 rounded hover:bg-neutral-200 text-neutral-600 transition-colors" data-command="justifyCenter" title="Align Center">
+                                            <i data-lucide="align-center" class="w-4 h-4"></i>
+                                        </button>
+                                        <button type="button" class="p-2 rounded hover:bg-neutral-200 text-neutral-600 transition-colors" data-command="justifyRight" title="Align Right">
+                                            <i data-lucide="align-right" class="w-4 h-4"></i>
+                                        </button>
+                                        <span class="w-px h-6 bg-neutral-300 mx-1"></span>
+                                        <button type="button" class="p-2 rounded hover:bg-neutral-200 text-neutral-600 transition-colors" data-command="insertUnorderedList" title="Bullet List">
+                                            <i data-lucide="list" class="w-4 h-4"></i>
+                                        </button>
+                                        <button type="button" class="p-2 rounded hover:bg-neutral-200 text-neutral-600 transition-colors" data-command="insertOrderedList" title="Numbered List">
+                                            <i data-lucide="list-ordered" class="w-4 h-4"></i>
+                                        </button>
+                                        <button type="button" class="p-2 rounded hover:bg-neutral-200 text-neutral-600 transition-colors" data-command="createLink" title="Insert Link">
+                                            <i data-lucide="link" class="w-4 h-4"></i>
+                                        </button>
+                                    </div>
+                                    <div class="p-4 min-h-[250px] max-h-[400px] overflow-y-auto bg-white" id="lessonContent" contenteditable="true"></div>
+                                    <input th:field="*{description}" type="hidden" name="description" id="lessonContentInput">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Video havolasi</label>
+
+                            <div class="relative">
+                                    <input th:field="*{videoLink}" type="url" id="videoLink" name="videoLink"
+                                           class="w-full border border-gray-300 p-2 rounded-lg"
+                                           placeholder="YouTube havolasini kiriting (Ixtiyoriy)">
+                                    <button type="button" onclick="previewVideo()"
+                                            class="absolute right-2 top-2 bg-blue-500 text-white px-3 py-1 rounded-md">
+                                        Ko‘rish
+                                    </button>
+                                </div>
+
+                            <div id="videoPreviewContainer" class="mt-4 hidden">
+                                <div id="videoPreviewWrapper"></div>
+                            </div>
+
+                            <p id="errorMessage" class="text-red-500 text-sm mt-2 hidden">❌ Noto‘g‘ri video havola!</p>
+                        </div>
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Qo'shimcha materiallar</label>
+                            <div id="materialsUploadArea" class="relative flex flex-col items-center justify-center min-h-[120px] border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 cursor-pointer hover:border-green-500 hover:bg-blue-50 transition-colors p-4">
+                                <input th:field="*{extraMaterials}" type="file" id="materialsUpload" name="extraMaterials[]" class="absolute inset-0 w-0 h-0 opacity-0" multiple accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.zip,.rar">
+                                <div class="text-center" id="materialsUploadPlaceholder">
+                                    <i data-lucide="file-plus" class="w-10 h-10 text-gray-400 mx-auto mb-2"></i>
+                                    <p class="text-green-500 font-medium text-sm">Fayllarni tanlang</p>
+                                    <p class="text-gray-500 text-xs mt-1">yoki bu yerga tashlang</p>
+                                    <p class="text-gray-400 text-xs mt-2">PDF, DOC, PPT, XLS, ZIP, RAR (max. 10MB)</p>
+                                </div>
+                            </div>
+                            <div id="materialsPreview" class="mt-2 space-y-2 hidden"></div>
+                            <p class="text-red-500 text-xs mt-1 hidden" id="materialsError">Fayllar hajmi jami 10MB dan oshmasligi kerak</p>
+                        </div>
+
+
+                        <div class="flex justify-end space-x-4 mt-8">
+                            <a th:href="@{/courses/view/{id}(id=${courseId})}" type="button" class="btn-secondary">Bekor qilish</a>
+                            <button type="submit" class="btn-primary">Darsni saqlash</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <script>
+                lucide.createIcons();
+            </script>
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    const richTextButtons = document.querySelectorAll('[data-command]');
+                    const lessonContent = document.getElementById('lessonContent');
+                    const lessonContentInput = document.getElementById('lessonContentInput');
+
+
+
+                    richTextButtons.forEach(button => {
+                        button.addEventListener('click', function() {
+                            const command = this.dataset.command;
+
+                            if (command === 'createLink') {
+                                const url = prompt('Havola manzilini kiriting:', 'https://');
+                                if (url) {
+                                    document.execCommand(command, false, url);
+                                }
+                            } else if (command === 'insertImage') {
+                                const url = prompt('Rasm manzilini kiriting:', 'https://');
+                                if (url) {
+                                    document.execCommand(command, false, url);
+                                }
+                            } else {
+                                document.execCommand(command, false, null);
+                            }
+
+                            // Update hidden input with content
+                            lessonContentInput.value = lessonContent.innerHTML;
+                        });
+                    });
+                });
+                function previewVideo() {
+                    let url = document.getElementById("videoLink").value;
+                    let previewContainer = document.getElementById("videoPreviewContainer");
+                    let previewWrapper = document.getElementById("videoPreviewWrapper");
+                    let errorMessage = document.getElementById("errorMessage");
+
+                    previewWrapper.innerHTML = "";
+                    errorMessage.classList.add("hidden");
+
+                    if (!url.trim()) {
+                        errorMessage.textContent = "❌ Iltimos, video havolasini kiriting!";
+                        errorMessage.classList.remove("hidden");
+                        previewContainer.classList.add("hidden");
+                        return;
+                    }
+
+                    let youtubeMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]+)/);
+                    if (youtubeMatch) {
+                        let videoId = youtubeMatch[1];
+                        previewWrapper.innerHTML = `
+                <iframe class="w-full h-64 rounded-lg shadow-lg"
+                        src="https://www.youtube.com/embed/${videoId}"
+                        frameborder="0" allowfullscreen>
+                </iframe>`;
+                        previewContainer.classList.remove("hidden");
+                        return;
+                    }
+
+                    if (url.match(/\.(mp4|webm|ogg)$/i)) {
+                        previewWrapper.innerHTML = `
+                <video controls class="w-full rounded-lg shadow-lg">
+                    <source src="${url}" type="video/mp4">
+                    Sizning brauzeringiz video formatni qo‘llab-quvvatlamaydi.
+                </video>`;
+                        previewContainer.classList.remove("hidden");
+                        return;
+                    }
+
+                    errorMessage.textContent = "❌ Noto‘g‘ri video havola! Faqat YouTube yoki MP4 havolalarini qo‘llab-quvvatlaymiz.";
+                    errorMessage.classList.remove("hidden");
+                    previewContainer.classList.add("hidden");
+                }
+                const materialsUpload = document.getElementById('materialsUpload');
+                const materialsUploadArea = document.getElementById('materialsUploadArea');
+                const materialsPreview = document.getElementById('materialsPreview');
+                const materialsError = document.getElementById('materialsError');
+                let uploadedMaterials = [];
+                const MAX_FILE_SIZE = 10 * 1024 * 1024;
+                materialsUploadArea.addEventListener('click', function() {
+                    materialsUpload.click();
+                });
+
+                materialsUpload.addEventListener('change', function() {
+                    handleMaterialsUpload(this.files);
+                });
+
+                ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                    materialsUploadArea.addEventListener(eventName, preventDefaults, false);
+                });
+
+                ['dragenter', 'dragover'].forEach(eventName => {
+                    materialsUploadArea.addEventListener(eventName, function() {
+                        this.classList.add('border-blue-500', 'bg-blue-50');
+                    }, false);
+                });
+
+                ['dragleave', 'drop'].forEach(eventName => {
+                    materialsUploadArea.addEventListener(eventName, function() {
+                        this.classList.remove('border-blue-500', 'bg-blue-50');
+                    }, false);
+                });
+
+                materialsUploadArea.addEventListener('drop', function(e) {
+                    const files = e.dataTransfer.files;
+                    handleMaterialsUpload(files);
+                });
+
+                // Handle materials upload
+                function handleMaterialsUpload(files) {
+                    if (!files || files.length === 0) return;
+
+                    // Check total file size
+                    let totalSize = 0;
+                    for (let i = 0; i < files.length; i++) {
+                        totalSize += files[i].size;
+                    }
+
+                    if (totalSize > MAX_FILE_SIZE) {
+                        materialsError.textContent = 'Fayllar hajmi jami 10MB dan oshmasligi kerak';
+                        materialsError.classList.remove('hidden');
+                        return;
+                    }
+
+                    materialsError.classList.add('hidden');
+
+                    for (let i = 0; i < files.length; i++) {
+                        const file = files[i];
+
+                        if (uploadedMaterials.some(item => item.name === file.name && item.size === file.size)) {
+                            continue;
+                        }
+
+                        uploadedMaterials.push(file);
+
+                        const fileItem = document.createElement('div');
+                        fileItem.className = 'flex items-center p-2 border border-gray-200 rounded-lg bg-white';
+                        fileItem.dataset.fileName = file.name;
+
+                        let iconName = 'file';
+                        let bgColor = 'bg-gray-100';
+                        let textColor = 'text-gray-600';
+
+                        if (file.name.endsWith('.pdf')) {
+                            iconName = 'file-text';
+                            bgColor = 'bg-red-100';
+                            textColor = 'text-red-600';
+                        } else if (file.name.endsWith('.doc') || file.name.endsWith('.docx')) {
+                            iconName = 'file-text';
+                            bgColor = 'bg-blue-100';
+                            textColor = 'text-blue-600';
+                        } else if (file.name.endsWith('.ppt') || file.name.endsWith('.pptx')) {
+                            iconName = 'file-presentation';
+                            bgColor = 'bg-orange-100';
+                            textColor = 'text-orange-600';
+                        } else if (file.name.endsWith('.xls') || file.name.endsWith('.xlsx')) {
+                            iconName = 'file-spreadsheet';
+                            bgColor = 'bg-green-100';
+                            textColor = 'text-green-600';
+                        } else if (['.zip', '.rar', '.7z', '.tar', '.gz'].some(ext => file.name.endsWith(ext))) {
+                            iconName = 'file-archive';
+                            bgColor = 'bg-purple-100';
+                            textColor = 'text-purple-600';
+                        }
+
+
+                        fileItem.innerHTML = `
+                        <div class="flex items-center justify-center w-10 h-10 rounded-md ${bgColor} ${textColor} mr-3">
+                            <i data-lucide="${iconName}" class="w-5 h-5"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex justify-between items-center">
+                                <p class="text-sm font-medium text-gray-700 truncate">${file.name}</p>
+                                <span class="text-xs text-gray-500 ml-2">${formatFileSize(file.size)}</span>
+                            </div>
+                            <div class="w-full h-1 bg-gray-200 rounded-full mt-1">
+                                <div class="h-full bg-blue-500 rounded-full progress-bar-fill" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        <button type="button" class="ml-2 p-1 rounded-full text-gray-400 hover:text-red-500 hover:bg-gray-100 remove-material" data-file-name="${file.name}">
+                            <i data-lucide="x" class="w-4 h-4"></i>
+                        </button>
+                    `;
+
+                        materialsPreview.appendChild(fileItem);
+                        lucide.createIcons();
+
+                        // Simulate upload progress
+                        const progressBar = fileItem.querySelector('.progress-bar-fill');
+                        simulateUploadProgress(progressBar);
+                    }
+
+                    materialsPreview.classList.remove('hidden');
+                }
+
+                materialsPreview.addEventListener('click', function(e) {
+                    if (e.target.closest('.remove-material')) {
+                        const button = e.target.closest('.remove-material');
+                        const fileName = button.dataset.fileName;
+                        const fileItem = button.closest('div');
+
+                        uploadedMaterials = uploadedMaterials.filter(file => file.name !== fileName);
+
+                        fileItem.remove();
+                        if (uploadedMaterials.length === 0) {
+                            materialsPreview.classList.add('hidden');
+                        }
+                    }
+                });
+                function formatFileSize(bytes) {
+                    if (bytes === 0) return '0 Bytes';
+
+                    const k = 1024;
+                    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+                    const i = Math.floor(Math.log(bytes) / Math.log(k));
+
+                    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+                }
+                function simulateUploadProgress(progressBar) {
+                    let width = 0;
+                    const interval = setInterval(() => {
+                        if (width >= 100) {
+                            clearInterval(interval);
+                        } else {
+                            width += 5;
+                            progressBar.style.width = width + '%';
+                        }
+                    }, 100);
+                }
+                function preventDefaults(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+            </script>
+        </div>
+    </body>
+</html>

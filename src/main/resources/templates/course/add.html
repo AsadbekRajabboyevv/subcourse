@@ -1,0 +1,368 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+        layout:decorate="~{layout}">
+    <head>
+        <title>[[#{course.add.headline}]]</title>
+        <script>
+            tailwind.config = {
+                theme: {
+                    extend: {
+                        colors: {
+                            'prep-green': '#4ade80',
+                            'prep-green-dark': '#22c55e',
+                        }
+                    }
+                }
+            }
+        </script>
+        <style>
+            .file-upload-label {
+                position: relative;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                height: 200px;
+                border: 2px dashed #e5e7eb;
+                border-radius: 0.5rem;
+                background-color: #f9fafb;
+                cursor: pointer;
+                transition: all 0.3s ease;
+            }
+
+            .file-upload-label:hover {
+                border-color: #4ade80;
+                background-color: #f0fdf4;
+            }
+
+            .file-upload-input {
+                position: absolute;
+                width: 0;
+                height: 0;
+                opacity: 0;
+            }
+
+            .preview-image {
+                max-height: 180px;
+                max-width: 100%;
+                border-radius: 0.375rem;
+                object-fit: contain;
+            }
+
+            .form-group {
+                margin-bottom: 1.5rem;
+            }
+
+            .form-label {
+                display: block;
+                margin-bottom: 0.5rem;
+                font-weight: 500;
+                color: #374151;
+            }
+
+            .form-input {
+                width: 100%;
+                padding: 0.625rem;
+                border: 1px solid #d1d5db;
+                border-radius: 0.375rem;
+                background-color: white;
+                color: #1f2937;
+                transition: border-color 0.15s ease-in-out;
+            }
+
+            .form-input:focus {
+                outline: none;
+                border-color: #4ade80;
+                box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.2);
+            }
+
+            .form-select {
+                width: 100%;
+                padding: 0.625rem;
+                border: 1px solid #d1d5db;
+                border-radius: 0.375rem;
+                background-color: white;
+                color: #1f2937;
+                transition: border-color 0.15s ease-in-out;
+            }
+
+            .form-select:focus {
+                outline: none;
+                border-color: #4ade80;
+                box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.2);
+            }
+
+            .btn-primary {
+                display: inline-block;
+                padding: 0.625rem 1.25rem;
+                background-color: #4ade80;
+                color: white;
+                font-weight: 500;
+                border-radius: 0.375rem;
+                text-align: center;
+                cursor: pointer;
+                transition: background-color 0.15s ease-in-out;
+            }
+
+            .btn-primary:hover {
+                background-color: #22c55e;
+            }
+
+            .btn-secondary {
+                display: inline-block;
+                padding: 0.625rem 1.25rem;
+                background-color: #e5e7eb;
+                color: #4b5563;
+                font-weight: 500;
+                border-radius: 0.375rem;
+                text-align: center;
+                cursor: pointer;
+                transition: background-color 0.15s ease-in-out;
+            }
+
+            .btn-secondary:hover {
+                background-color: #d1d5db;
+            }
+        </style>
+    </head>
+    <body class="bg-gray-100">
+        <div layout:fragment="content">
+            <div class="container mx-auto px-4 py-8">
+                <div class="max-w-3xl mx-auto bg-white rounded-lg shadow-md overflow-hidden">
+                    <div class="bg-green-400 p-6">
+                        <h1 class="text-2xl font-bold text-white">Yangi kurs qo'shish</h1>
+                    </div>
+
+                    <form id="courseForm" method="post" th:action="@{/courses/add}" th:object="${course}" enctype="multipart/form-data" class="p-6">
+                        <div class="form-group">
+                            <label for="name" class="form-label">Kurs nomi</label>
+                            <input th:field="*{name}" type="text" id="name" name="name" class="form-input" placeholder="Masalan: Ona tili videokursi" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="courseCategory" class="form-label">Kurs kategoriyasi</label>
+                            <select th:field="*{scienceId}" id="courseCategory" name="scienceType" class="form-select" required>
+                                <option value="">Kategoriyani tanlang</option>
+                                <option th:each="science : ${scienceTypes}"
+                                        th:value="${science.id}"
+                                        th:text="${science.name}">
+                                </option>
+                            </select>
+
+                        </div>
+
+                        <div class="form-group">
+                            <label for="courseGrade" class="form-label">Sinf darajasi</label>
+                            <select th:field="*{courseGradeId}" id="courseGrade" name="courseGrade" class="form-select" required>
+                                <option value="">Darajani tanlang</option>
+                                <option th:each="grade : ${courseGrades}"
+                                        th:value="${grade.id}"
+                                        th:text="${grade.name}">
+                                </option>
+                            </select>
+
+                        </div>
+                        <div class="form-group">
+                            <div class="flex gap-4 mb-4">
+                                <div class="w-1/2">
+                                    <label for="courseDuration" class="block text-sm font-medium text-gray-700">Kurs davomiyligi</label>
+                                    <input th:field="*{duration}" type="number" id="courseDuration" name="courseDuration" class="mt-1 block w-full px-3 py-2 border rounded-lg shadow-sm form-input" placeholder="Masalan: 6" required>
+                                </div>
+                                <div class="w-1/2">
+                                    <label for="courseDurationType" class="block text-sm font-medium text-gray-700">Davomiylik turi</label>
+                                    <select th:field="*{durationType}" id="courseDurationType" name="courseDurationType" class="mt-1 block w-full px-3 py-2 border rounded-lg shadow-sm form-select">
+                                        <option value="DAYS">Kun</option>
+                                        <option value="WEEKS">Hafta</option>
+                                        <option value="MONTHS">Oy</option>
+                                        <option value="HOURS">Soat</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <div class="form-group">
+                            <label for="courseDescription" class="form-label">Kurs tavsifi</label>
+                            <textarea th:field="*{description}" id="courseDescription" name="courseDescription" class="form-input" rows="5" placeholder="Kurs haqida batafsil ma'lumot..." required></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Kurs fon rasmi</label>
+                            <label for="courseImage" class="file-upload-label" id="uploadLabel">
+                                <div id="uploadIcon" class="mb-2">
+                                    <i data-lucide="image-plus" class="w-12 h-12 text-gray-400"></i>
+                                </div>
+                                <div id="uploadText" class="text-center">
+                                    <span class="text-prep-green font-medium">Rasmni tanlang</span>
+                                    <p class="text-gray-500 text-sm mt-1">yoki bu yerga tashlang</p>
+                                    <p class="text-gray-400 text-xs mt-2">PNG, JPG, GIF (max. 2MB)</p>
+                                </div>
+                                <img id="imagePreview" class="preview-image hidden" src="#" alt="Preview">
+                                <input th:field="*{imagePath}" type="file" id="courseImage" name="courseImage" class="file-upload-input" accept="image/*">
+                            </label>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Kurs xususiyatlari</label>
+                            <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                                <div class="space-y-3">
+                                    <div class="flex items-start">
+                                        <div class="flex items-center h-5">
+                                            <input th:field="*{hasVideos}" id="feature1" name="features" type="checkbox" class="h-4 w-4 text-prep-green border-gray-300 rounded focus:ring-prep-green">
+                                        </div>
+                                        <div class="ml-3 text-sm">
+                                            <label for="feature1" class="font-medium text-gray-700">Video darslar</label>
+                                            <p class="text-gray-500">Kursda video darslar mavjud</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex items-start">
+                                        <div class="flex items-center h-5">
+                                            <input th:field="*{hasTests}" id="feature2" name="features" type="checkbox" class="h-4 w-4 text-prep-green border-gray-300 rounded focus:ring-prep-green">
+                                        </div>
+                                        <div class="ml-3 text-sm">
+                                            <label for="feature2" class="font-medium text-gray-700">Testlar</label>
+                                            <p class="text-gray-500">Kursda bilimni tekshirish uchun testlar mavjud</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex items-start">
+                                        <div class="flex items-center h-5">
+                                            <input th:field="*{hasExtraMaterials}" id="feature3" name="features" type="checkbox" class="h-4 w-4 text-prep-green border-gray-300 rounded focus:ring-prep-green">
+                                        </div>
+                                        <div class="ml-3 text-sm">
+                                            <label for="feature3" class="font-medium text-gray-700">Qo'shimcha materiallar</label>
+                                            <p class="text-gray-500">Kursda qo'shimcha o'quv materiallari mavjud</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex items-start">
+                                        <div class="flex items-center h-5">
+                                            <input th:field="*{hasCertificate}" id="feature4" name="features" type="checkbox" class="h-4 w-4 text-prep-green border-gray-300 rounded focus:ring-prep-green">
+                                        </div>
+                                        <div class="ml-3 text-sm">
+                                            <label for="feature4" class="font-medium text-gray-700">Sertifikat</label>
+                                            <p class="text-gray-500">Kursni tugatgandan so'ng sertifikat beriladi</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="coursePrice" class="form-label">Kurs narxi (so'm)</label>
+                            <input th:field="*{price}" type="number" id="coursePrice" name="coursePrice" class="form-input" placeholder="Masalan: 150000" required>
+                        </div>
+
+                        <div class="flex justify-end space-x-4 mt-8">
+                            <a href="/courses" type="button" class="btn-secondary">Bekor qilish</a>
+                            <button type="submit" class="btn-primary">Kursni saqlash</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <script>
+                lucide.createIcons();
+            </script>
+
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    const courseImageInput = document.getElementById('courseImage');
+                    const imagePreview = document.getElementById('imagePreview');
+                    const uploadIcon = document.getElementById('uploadIcon');
+                    const uploadText = document.getElementById('uploadText');
+                    const uploadLabel = document.getElementById('uploadLabel');
+                    const courseForm = document.getElementById('courseForm');
+                    courseImageInput.addEventListener('change', function(e) {
+                        const file = e.target.files[0];
+
+                        if (file) {
+                            if (file.size > 2 * 1024 * 1024) {
+                                alert('Fayl hajmi 2MB dan oshmasligi kerak!');
+                                return;
+                            }
+
+                            if (!file.type.match('image.*')) {
+                                alert('Faqat rasm fayllarini yuklash mumkin!');
+                                return;
+                            }
+
+                            const reader = new FileReader();
+
+                            reader.onload = function(e) {
+                                imagePreview.src = e.target.result;
+                                imagePreview.classList.remove('hidden');
+                                uploadIcon.classList.add('hidden');
+                                uploadText.classList.add('hidden');
+                                uploadLabel.style.border = '2px solid #4ade80';
+                            }
+
+                            reader.readAsDataURL(file);
+                        }
+                    });
+
+                    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                        uploadLabel.addEventListener(eventName, preventDefaults, false);
+                    });
+
+                    function preventDefaults(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    }
+
+                    ['dragenter', 'dragover'].forEach(eventName => {
+                        uploadLabel.addEventListener(eventName, highlight, false);
+                    });
+
+                    ['dragleave', 'drop'].forEach(eventName => {
+                        uploadLabel.addEventListener(eventName, unhighlight, false);
+                    });
+
+                    function highlight() {
+                        uploadLabel.style.borderColor = '#4ade80';
+                        uploadLabel.style.backgroundColor = '#f0fdf4';
+                    }
+
+                    function unhighlight() {
+                        uploadLabel.style.borderColor = '#e5e7eb';
+                        uploadLabel.style.backgroundColor = '#f9fafb';
+                    }
+
+                    uploadLabel.addEventListener('drop', handleDrop, false);
+
+                    function handleDrop(e) {
+                        const dt = e.dataTransfer;
+                        const file = dt.files[0];
+
+                        if (file) {
+                            if (file.size > 2 * 1024 * 1024) {
+                                alert('Fayl hajmi 2MB dan oshmasligi kerak!');
+                                return;
+                            }
+
+                            if (!file.type.match('image.*')) {
+                                alert('Faqat rasm fayllarini yuklash mumkin!');
+                                return;
+                            }
+
+                            courseImageInput.files = dt.files;
+
+                            const reader = new FileReader();
+
+                            reader.onload = function(e) {
+                                imagePreview.src = e.target.result;
+                                imagePreview.classList.remove('hidden');
+                                uploadIcon.classList.add('hidden');
+                                uploadText.classList.add('hidden');
+                                uploadLabel.style.border = '2px solid #4ade80';
+                            }
+
+                            reader.readAsDataURL(file);
+                        }
+                    }
+                });
+            </script>
+            </div>
+    </body>
+</html>

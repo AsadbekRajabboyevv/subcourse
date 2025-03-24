@@ -1,0 +1,22 @@
+<div th:fragment="commentForm(actionUrl)">
+  <form th:action="${actionUrl}" method="post" class="space-y-4 bg-white shadow-md p-4 rounded-lg">
+
+    <!-- Baholash qismi -->
+    <div class="flex items-center space-x-1">
+      <input type="hidden" name="rating" id="rating-value" value="0">
+      <i class="fas fa-star rat text-gray-400 cursor-pointer text-xl" onclick="setRating(1)"></i>
+      <i class="fas fa-star rat text-gray-400 cursor-pointer text-xl" onclick="setRating(2)"></i>
+      <i class="fas fa-star rat text-gray-400 cursor-pointer text-xl" onclick="setRating(3)"></i>
+      <i class="fas fa-star rat text-gray-400 cursor-pointer text-xl" onclick="setRating(4)"></i>
+      <i class="fas fa-star rat text-gray-400 cursor-pointer text-xl" onclick="setRating(5)"></i>
+    </div>
+
+    <!-- Fikr yozish qismi -->
+    <textarea required name="content" rows="3" class="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+              placeholder="Fikringizni yozing..."></textarea>
+
+    <button type="submit" class="bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition">
+      💬 Fikr Qoldirish
+    </button>
+  </form>
+</div>

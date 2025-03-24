@@ -1,0 +1,92 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+  <title>Online testlar</title>
+  <style>
+    .course-card {
+      transition: all 0.3s ease;
+    }
+    .course-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    }
+    .star-rating .star {
+      color: #e5e7eb;
+    }
+    .star-rating .star.filled {
+      color: #fbbf24;
+    }
+  </style>
+</head>
+<body class="bg-gray-100">
+<div layout:fragment="content">
+  <div class="bg-gray-100 min-h-screen p-4 md:p-8 container mx-auto">
+    <div class="flex justify-between items-center mt-2">
+      <div>
+        <h1 class="text-2xl md:text-xl font-bold text-gray-500" >Hech qanday kurs yo'q!</h1>
+      </div>
+      <a href="/courses/add" th:if="${#authorization.expression('isAuthenticated()')&& role.equals('ROLE_ADMIN')}" id="load-more" class="bg-green-500 hover:bg-green-600 text-white py-2 px-6 rounded-md transition-colors">
+        Test qo'shish
+      </a>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+
+      <div class="course-card bg-white rounded-lg shadow-md overflow-hidden">
+        <div class="relative">
+          <div class="h-40 relative">
+            <img  alt="Background Image" class="absolute inset-0 w-full h-full object-cover">
+            <div class="relative flex flex-col items-center justify-center h-full text-white">
+              <div class="flex justify-center mt-2 space-x-2">
+                <i data-lucide="book" class="w-5 h-5 text-blue-600"></i>
+                <i data-lucide="trophy" class="w-5 h-5 text-blue-600"></i>
+                <i data-lucide="file-text" class="w-5 h-5 text-blue-600"></i>
+                <i data-lucide="search" class="w-5 h-5 text-blue-600"></i>
+                <i data-lucide="pen-tool" class="w-5 h-5 text-blue-600"></i>
+                <i data-lucide="book-open" class="w-5 h-5 text-blue-600"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+
+        <div class="p-4">
+          <h3 class="font-medium text-gray-800 mb-1" >Matematika testi</h3>
+          <p class="text-sm text-blue-600 mb-3" >10-sinflar uchun</p>
+
+          <div class="flex justify-between items-center mb-3">
+            <div class="flex items-center space-x-4">
+              <div class="flex items-center">
+                <i data-lucide="users" class="w-4 h-4 text-gray-400 mr-1"></i>
+                <span class="text-xs text-gray-500"></span>
+              </div>
+              <div class="flex items-center">
+                <i data-lucide="book-open" class="w-4 h-4 text-gray-400 mr-1"></i>
+                <span class="text-xs text-gray-500"> 40 ta savol</span>
+              </div>
+              <div class="flex items-center">
+                <i data-lucide="time" class="w-4 h-4 text-gray-400 mr-1"></i>
+                <span class="text-xs text-gray-500">45 daqiqa</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex justify-between items-center">
+            <div class="star-rating flex">
+              <span class="text-xs text-gray-500 ml-1"></span>
+            </div>
+            <a
+               class="bg-green-500 hover:bg-green-600 text-white text-sm py-1 px-4 rounded transition-colors">
+              Qatnashish
+            </a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>
